@@ -1,12 +1,12 @@
 {
   "git": {
-    "tagName": "scoreboard@${version}",
-    "commitMessage": "chore(release): scoreboard@${version} [skip ci]",
-    "tagAnnotation": "scoreboard v${version}"
+    "tagName": "@scoreboard/frontend@${version}",
+    "commitMessage": "chore(release): @scoreboard/frontend@${version} [skip ci]",
+    "tagAnnotation": "@scoreboard/frontend v${version}"
   },
   "github": {
     "release": true,
-    "releaseName": "scoreboard v${version}"
+    "releaseName": "@scoreboard/frontend v${version}"
   },
   "plugins": {
     "@release-it/conventional-changelog": {
