@@ -10,13 +10,13 @@ const rootRoute = createRootRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: LoginPage,
+  component: ScoreboardPage,
 })
 
 const scoreboardRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/scoreboard',
-  component: ScoreboardPage,
+  path: '/login',
+  component: LoginPage,
 })
 
 const playersRoute = createRoute({
