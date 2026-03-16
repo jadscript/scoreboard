@@ -112,7 +112,7 @@ export function ScoreboardPage() {
           onClick={() => handleScore("team1")}
         >
           <h1
-            className={`font-bold w-full text-center text-[30vw] leading-none score-font ${team1Score === "40" ? "animate-transform" : ""}`}
+            className={`font-bold w-full text-center text-[25vw] leading-none score-font ${team1Score === "40" ? "animate-transform" : ""}`}
           >
             {team1Score}
           </h1>
@@ -122,7 +122,7 @@ export function ScoreboardPage() {
           onClick={() => handleScore("team2")}
         >
           <h1
-            className={`font-bold w-full text-center text-[30vw] leading-none score-font ${team2Score === "40" ? "animate-transform" : ""}`}
+            className={`font-bold w-full text-center text-[25vw] leading-none score-font ${team2Score === "40" ? "animate-transform" : ""}`}
           >
             {team2Score}
           </h1>
