@@ -32,7 +32,7 @@ export function ScoreboardPage() {
 
   return (
     <div className="flex flex-col items-center justify-between">
-      <div className="w-full grid grid-cols-2 items-center justify-center h-screen">
+      <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-screen">
         <div className="absolute top-0 left-0 right-0 flex justify-center">
           <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-full max-[459px]:rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
             {/* Info group: team labels + set scores */}
@@ -105,7 +105,7 @@ export function ScoreboardPage() {
         </div>
 
         <div
-          className="flex items-center justify-center border-r h-full bg-green-700 hover:bg-green-600 transition-colors cursor-pointer"
+          className={`flex items-center justify-center h-full bg-green-700 hover:bg-green-600 transition-colors cursor-pointer ${serving === "team1" ? "order-1 border-r-4" : "order-2 border-l-4"}`}
           onClick={() => handleScore("team1")}
         >
           <h1
@@ -115,7 +115,7 @@ export function ScoreboardPage() {
           </h1>
         </div>
         <div
-          className="flex items-center justify-center border-l h-full bg-blue-700 hover:bg-blue-600 transition-colors cursor-pointer"
+          className={`flex items-center justify-center h-full bg-blue-700 hover:bg-blue-600 transition-colors cursor-pointer ${serving === "team2" ? "order-1 border-r-4" : "order-2 border-l-4"}`}
           onClick={() => handleScore("team2")}
         >
           <h1
