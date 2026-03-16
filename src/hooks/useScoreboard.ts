@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 
 const SCORE_KEY = ' '
+const TEAM1_KEY = '1'
+const TEAM2_KEY = '2'
 const DOUBLE_CLICK_THRESHOLD_MS = 300
 const HOLD_DURATION_MS = 3000
 
@@ -154,32 +156,66 @@ export function useScoreboard() {
   }, [])
 
   const lastKeyUpRef = useRef<number | null>(null)
-  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const spaceHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const singleClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const didHoldRef = useRef(false)
+  const spaceDidHoldRef = useRef(false)
+
+  const teamHoldTimerRef = useRef<Partial<Record<Team, ReturnType<typeof setTimeout>>>>({})
+  const teamDidHoldRef = useRef<Partial<Record<Team, boolean>>>({})
 
   useEffect(() => {
+    const TEAM_KEY_MAP: Record<string, Team> = {
+      [TEAM1_KEY]: 'team1',
+      [TEAM2_KEY]: 'team2',
+    }
+
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== SCORE_KEY || e.repeat) return
+      if (e.repeat) return
 
-      didHoldRef.current = false
+      const team = TEAM_KEY_MAP[e.key]
+      if (team) {
+        teamDidHoldRef.current[team] = false
+        teamHoldTimerRef.current[team] = setTimeout(() => {
+          teamDidHoldRef.current[team] = true
+          handleUndo()
+        }, HOLD_DURATION_MS)
+        return
+      }
 
-      holdTimerRef.current = setTimeout(() => {
-        didHoldRef.current = true
+      if (e.key !== SCORE_KEY) return
+
+      spaceDidHoldRef.current = false
+      spaceHoldTimerRef.current = setTimeout(() => {
+        spaceDidHoldRef.current = true
         handleUndo()
       }, HOLD_DURATION_MS)
     }
 
     const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key !== SCORE_KEY) return
-
-      if (holdTimerRef.current) {
-        clearTimeout(holdTimerRef.current)
-        holdTimerRef.current = null
+      const team = TEAM_KEY_MAP[e.key]
+      if (team) {
+        const timer = teamHoldTimerRef.current[team]
+        if (timer) {
+          clearTimeout(timer)
+          delete teamHoldTimerRef.current[team]
+        }
+        if (teamDidHoldRef.current[team]) {
+          teamDidHoldRef.current[team] = false
+          return
+        }
+        handleScore(team)
+        return
       }
 
-      if (didHoldRef.current) {
-        didHoldRef.current = false
+      if (e.key !== SCORE_KEY) return
+
+      if (spaceHoldTimerRef.current) {
+        clearTimeout(spaceHoldTimerRef.current)
+        spaceHoldTimerRef.current = null
+      }
+
+      if (spaceDidHoldRef.current) {
+        spaceDidHoldRef.current = false
         return
       }
 
@@ -211,8 +247,9 @@ export function useScoreboard() {
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
-      if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
+      if (spaceHoldTimerRef.current) clearTimeout(spaceHoldTimerRef.current)
       if (singleClickTimerRef.current) clearTimeout(singleClickTimerRef.current)
+      Object.values(teamHoldTimerRef.current).forEach(clearTimeout)
     }
   }, [handleScore, handleUndo])
 
