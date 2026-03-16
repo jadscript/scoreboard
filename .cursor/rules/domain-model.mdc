@@ -1,0 +1,208 @@
+---
+description: DDD patterns, domain entity structure and beach tennis rules
+globs: src/core/**/*.ts
+alwaysApply: false
+---
+
+# Domain Model
+
+## Entity Hierarchy
+
+```
+Match (AggregateRoot)
+└── SetEntity[]
+    └── Game[]
+        └── Point[]
+```
+
+`Match` is the **only aggregate root**. All mutations go through it.
+
+## Base Classes Pattern
+
+All entities extend `Entity<TProps>` or `AggregateRoot<TProps>`:
+
+```typescript
+// ✅ Correct — Props interface + private constructor + factory methods
+interface GameProps {
+  type: GameType
+  noAd: boolean
+  points: Point[]
+  winner: PointScorer | null
+}
+
+export class Game extends Entity<GameProps> {
+  private constructor(props: GameProps, id?: string) {
+    super(props, id)           // id is auto-generated if omitted
+  }
+
+  static create(type: GameType = 'regular', noAd = false): Game {
+    return new Game({ type, noAd, points: [], winner: null })
+  }
+
+  static restore(id: string, props: Omit<GameProps, 'winner'>): Game {
+    return new Game({ ...props, winner: null }, id)
+  }
+
+  get type(): GameType { return this.props.type }
+  // ... all state exposed via getters
+}
+
+// ❌ Wrong — no parameter properties, no public constructors
+class Game {
+  constructor(public readonly type: GameType) {}
+}
+```
+
+## Mutable State via Props
+
+Entities mutate their own `props` internally. `props` is `protected readonly` (ref is immutable; contents are mutable):
+
+```typescript
+// ✅ Inside entity methods
+this.props.winner = 'team1'   // mutate property — OK
+this.props.points.push(p)     // mutate array content — OK
+
+// ❌ Never from outside
+game.props.winner = 'team1'  // props is protected
+```
+
+## Domain Events
+
+Only the **AggregateRoot** (`Match`) emits events. Entities set their own state; `Match` observes and fires events:
+
+```typescript
+// In Match.scorePoint():
+set.scorePoint(scorer)                                        // delegate
+this.addDomainEvent(new PointScoredEvent(...))               // observe + fire
+if (game.isFinished) {
+  this.addDomainEvent(new GameWonEvent(...))
+  if (set.isFinished) {
+    this.addDomainEvent(new SetWonEvent(...))
+    // ...
+  }
+}
+```
+
+Events are consumed via `match.pullDomainEvents()` which empties the queue.
+
+### Event Class Pattern
+
+Event classes follow the same Props pattern as entities — no parameter properties, `import type` for all type-only imports:
+
+```typescript
+// ✅ Correct
+import type { DomainEvent } from '../shared/domain-event.interface'
+import type { PointScorer } from '../shared/types'
+
+interface GameWonEventProps {
+  matchId: string
+  winner: PointScorer
+  setId: string
+  gameId: string
+}
+
+export class GameWonEvent implements DomainEvent {
+  readonly eventName = 'GameWon'
+  readonly occurredAt = new Date()
+
+  private readonly props: GameWonEventProps
+
+  constructor(matchId: string, winner: PointScorer, setId: string, gameId: string) {
+    this.props = { matchId, winner, setId, gameId }
+  }
+
+  get matchId(): string { return this.props.matchId }
+  get winner(): PointScorer { return this.props.winner }
+  get setId(): string { return this.props.setId }
+  get gameId(): string { return this.props.gameId }
+}
+
+// ❌ Wrong — parameter properties + missing import type
+import { DomainEvent } from '../shared/domain-event.interface'
+import { PointScorer } from '../shared/types'
+
+export class GameWonEvent implements DomainEvent {
+  constructor(
+    public readonly matchId: string,
+    public readonly winner: PointScorer,
+  ) {}
+}
+```
+
+## Value Objects
+
+Value objects follow the same Props pattern — Props interface, class field, constructor assigns, getters expose:
+
+```typescript
+// ✅ Correct
+interface TeamProps {
+  id: string
+  name: string
+}
+
+export class Team {
+  private readonly props: TeamProps
+
+  private constructor(props: TeamProps) {
+    this.props = props
+  }
+
+  static create(name: string): Team {
+    return new Team({ id: crypto.randomUUID(), name })
+  }
+
+  static restore(id: string, name: string): Team {
+    return new Team({ id, name })
+  }
+
+  get id(): string { return this.props.id }
+  get name(): string { return this.props.name }
+  equals(other: Team): boolean { return this.props.id === other.props.id }
+}
+```
+
+## Beach Tennis Scoring Rules
+
+### Game — Regular
+- Points: `0 → 15 → 30 → 40 → Win`
+- At deuce (3-3): need 2 consecutive points to win
+- **noAd mode** (beach tennis default): at deuce, next point wins
+- Display: `'0' | '15' | '30' | '40' | 'Deuce' | 'Advantage'`
+
+### Game — Tiebreak
+- Raw count, first to **7**, win by **2**
+- Display: `'0' | '1' | '2' | ...`
+
+### Game — Super Tiebreak
+- Raw count, first to **10**, win by **2**
+
+### Set — Standard
+- First to **6 games**, win by **2**
+- At 5-5: play to 7 (7-5 wins)
+- At 6-6: **tiebreak** game decides (score becomes 7-6)
+
+### Set — Super Tiebreak Set
+- A single `super-tiebreak` game decides the entire set
+- Used for the deciding set when `MatchConfig.finalSetSuperTiebreak = true`
+
+### Match
+- **bestOf**: `1 | 3 | 5` (defaults to `3`)
+- **noAd**: `true` by default (official beach tennis rule)
+- **finalSetSuperTiebreak**: `true` by default
+- `setsToWin = Math.ceil(bestOf / 2)`
+
+## Shared Types (`src/core/domain/shared/types.ts`)
+
+```typescript
+type PointScorer = 'team1' | 'team2'
+type MatchStatus = 'not_started' | 'in_progress' | 'finished'
+type GameType = 'regular' | 'tiebreak' | 'super-tiebreak'
+```
+
+Always import these from `shared/types`, not from individual entities, to avoid circular deps.
+
+## Use Cases
+
+The application layer lives in `src/core/application/` and follows CQRS. See `application-layer.mdc` for the full guide.
+
+Commands call aggregate methods and return minimal output. Queries map the aggregate to `MatchDto` for the UI. All handlers depend on `IMatchRepository` (a port injected via constructor).

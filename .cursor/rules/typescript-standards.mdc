@@ -1,0 +1,99 @@
+---
+description: TypeScript conventions enforced by the tsconfig
+globs: **/*.ts,**/*.tsx
+alwaysApply: false
+---
+
+# TypeScript Standards
+
+## Critical tsconfig Flags
+
+### `erasableSyntaxOnly: true`
+Only TypeScript syntax that can be erased by stripping type annotations is allowed. This means:
+
+```typescript
+// ❌ Parameter properties — NOT allowed (applies to ANY access modifier)
+class Foo {
+  constructor(private readonly name: string) {}
+}
+
+// ✅ Declare field on the class body, assign in the constructor
+class Foo {
+  private readonly name: string
+  constructor(name: string) {
+    this.name = name
+  }
+}
+
+// ✅ Same rule applies to Value Objects (no Entity base class)
+class MatchConfig {
+  private readonly props: MatchConfigProps   // field declaration
+  private constructor(props: MatchConfigProps) {
+    this.props = props                        // plain assignment
+  }
+}
+
+// ❌ Regular enums — NOT allowed
+enum Status { Active, Inactive }
+
+// ✅ const enums or union types
+type Status = 'active' | 'inactive'
+```
+
+### `verbatimModuleSyntax: true`
+Every import used only as a type **must** use `import type`:
+
+```typescript
+// ❌ Will error if PointScorer is only used as a type
+import { PointScorer } from './shared/types'
+
+// ✅ Correct
+import type { PointScorer } from './shared/types'
+
+// ✅ Mixed — value + type from same module
+import { Game, type GameType } from './game.entity'
+```
+
+### `noUnusedLocals` + `noUnusedParameters: true`
+Remove unused variables and parameters. Use `_` prefix only when required by an interface/override:
+
+```typescript
+// ✅ Prefix with _ to suppress when intentionally unused
+function handler(_event: MouseEvent): void { ... }
+```
+
+## Factory Method Pattern
+
+All domain classes use `static create()` and `static restore()`:
+
+```typescript
+// create()  — brand-new instance, auto-generates UUID
+const match = Match.create(team1, team2, config)
+
+// restore() — rehydrates a persisted instance with a known id
+const match = Match.restore(id, { team1, team2, config, ... })
+```
+
+## `import type` Discipline
+
+- Use `import type` for all interfaces, type aliases, and enums used only as types
+- Re-export types with `export type { Foo }` when needed
+
+## Null Safety
+
+- Prefer `null` over `undefined` for intentionally absent domain values (winner, currentGame, etc.)
+- Use optional chaining (`?.`) and nullish coalescing (`??`) over explicit null checks when appropriate
+
+## No Comments That Narrate Code
+
+Only add comments that explain **why** something is done, never **what**:
+
+```typescript
+// ❌ Narrating
+// Set the winner to team1
+this.props.winner = 'team1'
+
+// ✅ Explaining non-obvious intent
+// noAd: at deuce (3-3), next point wins — no second chance
+if (t1 >= 4 && t1 > t2) this.props.winner = 'team1'
+```

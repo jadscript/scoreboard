@@ -1,0 +1,76 @@
+---
+description: React component patterns, routing and Tailwind conventions
+globs: src/**/*.tsx,src/router.tsx,src/hooks/**/*.ts
+alwaysApply: false
+---
+
+# UI & Routing
+
+## Routing — TanStack Router
+
+Routes are defined **code-based** in `src/router.tsx`:
+
+```typescript
+const rootRoute = createRootRoute({ component: () => <Outlet /> })
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: LoginPage,
+})
+
+export const router = createRouter({ routeTree })
+
+// Module augmentation for type-safety
+declare module '@tanstack/react-router' {
+  interface Register { router: typeof router }
+}
+```
+
+When adding a new page:
+1. Create the component in `src/pages/`
+2. Create a `createRoute(...)` in `src/router.tsx`
+3. Add it to `routeTree` via `rootRoute.addChildren([...])`
+
+## Pages (`src/pages/`)
+
+- One file per route
+- Named exports: `export function LoginPage() { ... }`
+- No default exports for pages
+
+## Custom Hooks (`src/hooks/`)
+
+Business logic that bridges the domain and the UI lives in custom hooks:
+
+```
+src/hooks/
+└── useScoreboard.ts    ← keyboard input, score dispatch, undo history
+```
+
+Hooks should:
+- Receive no framework-specific dependencies — keep them portable
+- Expose only what the UI needs (never expose internal state directly)
+- Use `useReducer` for multi-step state machines (score + history)
+
+## Styling — Tailwind CSS 4
+
+- No custom CSS classes. All styling via Tailwind utility classes.
+- `src/index.css` contains only the `@import "tailwindcss"` directive and bare resets (body background/font/color). Nothing else.
+- Dark slate theme: `bg-slate-900` background, `slate-800` cards, `indigo-600` primary action.
+
+```tsx
+// ✅ Tailwind only
+<button className="bg-indigo-600 hover:bg-indigo-500 rounded-lg py-2.5 font-semibold">
+  Start
+</button>
+
+// ❌ No inline styles, no CSS modules
+<button style={{ background: '#4f46e5' }}>Start</button>
+```
+
+## Component Conventions
+
+- Functional components only
+- Props typed with a local `interface Props { ... }` inside the file
+- No prop drilling beyond 2 levels — use a hook or context instead
+- No `any` — prefer `unknown` and narrow with type guards

@@ -1,0 +1,186 @@
+---
+description: Test conventions, structure and helper patterns
+globs: src/**/__tests__/**/*.test.ts
+alwaysApply: false
+---
+
+# Testing
+
+## Framework
+
+**Vitest 4** — configured via `vite.config.ts`:
+```typescript
+test: {
+  environment: 'node',
+  include: ['src/**/__tests__/**/*.test.ts'],
+}
+```
+
+Run tests: `pnpm test` (single run) | `pnpm test:watch` (watch mode)
+
+## File Location
+
+Tests live in a `__tests__/` folder **at the same level** as the file under test:
+
+```
+src/core/domain/
+├── game.entity.ts
+├── __tests__/
+│   └── game.entity.test.ts       ← tests for game.entity.ts
+└── value-objects/
+    ├── team.vo.ts
+    └── __tests__/
+        └── team.vo.test.ts       ← tests for team.vo.ts
+```
+
+## No Mocks for Domain
+
+The domain is pure TypeScript with no external dependencies. **Never mock domain entities** — always use the real classes:
+
+```typescript
+// ✅ Always use real domain objects
+const match = Match.create(Team.create('A'), Team.create('B'))
+match.start()
+match.scorePoint('team1')
+
+// ❌ Never mock the domain
+const match = { scorePoint: vi.fn(), ... }
+```
+
+## Helper Functions
+
+Extract reusable setup into local helper functions at the top of the test file:
+
+```typescript
+/** Scores n points for the given scorer */
+function score(game: Game, scorer: PointScorer, n = 1): void {
+  for (let i = 0; i < n; i++) game.addPoint(scorer)
+}
+
+/** Wins an entire game (4 direct points, no deuce) */
+function winGame(game: Game, winner: PointScorer): void {
+  score(game, winner, 4)
+}
+```
+
+## Describe / It Structure
+
+```
+describe('ClassName', () => {
+  describe('method or scenario group', () => {
+    it('specific behaviour in plain English', () => { ... })
+  })
+})
+```
+
+Standard describe groups used across the codebase:
+- `initial state` — checks right after construction
+- `win` / `set win` / `progression` — happy path scenarios
+- `state guards` — throws when preconditions are violated
+- `domain events` — event names and payloads (Match only)
+
+## Immutability Assertions
+
+When testing that getters return copies (not internal references):
+
+```typescript
+it('games returns an immutable copy', () => {
+  const set = SetEntity.create()
+  const copy = set.games as unknown[]
+  const lengthBefore = copy.length
+  copy.push({})
+  expect(set.games).toHaveLength(lengthBefore)
+})
+```
+
+## Domain Event Assertions
+
+```typescript
+const events = match.pullDomainEvents()
+
+// Check event was fired
+expect(events.some((e) => e.eventName === 'MatchWon')).toBe(true)
+
+// Check event payload
+const wonEvent = events.find((e) => e.eventName === 'MatchWon') as
+  | { winner: PointScorer }
+  | undefined
+expect(wonEvent?.winner).toBe('team1')
+```
+
+## Reaching 6-6 in Set Tests
+
+Calling `winGames(set, 'team1', 6)` closes the set at 6-0. To reach 6-6, alternate wins:
+
+```typescript
+function reachSixSix(set: SetEntity): void {
+  for (let i = 0; i < 6; i++) {
+    winGame(set, 'team1')
+    winGame(set, 'team2')
+  }
+}
+```
+
+## Application Layer Tests
+
+Tests for commands and queries live in `src/core/application/__tests__/`.
+
+### InMemoryMatchRepository
+
+A lightweight fake (not a mock) that satisfies `IMatchRepository` in memory. Keeps tests fast and framework-free:
+
+```typescript
+import { InMemoryMatchRepository } from './helpers/in-memory-match.repository'
+
+const repository = new InMemoryMatchRepository()
+// repository.size → number of saved matches
+```
+
+### Handler Test Pattern
+
+Each test file uses `beforeEach` to create a fresh repository and handlers. Handlers that depend on each other (e.g., `ScorePoint` needs a started match) call prior handlers in `beforeEach`:
+
+```typescript
+describe('ScorePointHandler', () => {
+  let repository: InMemoryMatchRepository
+  let createMatch: CreateMatchHandler
+  let startMatch: StartMatchHandler
+  let scorePoint: ScorePointHandler
+  let matchId: string
+
+  beforeEach(async () => {
+    repository = new InMemoryMatchRepository()
+    createMatch = new CreateMatchHandler(repository)
+    startMatch = new StartMatchHandler(repository)
+    scorePoint = new ScorePointHandler(repository)
+
+    const result = await createMatch.execute({ team1Name: 'A', team2Name: 'B' })
+    matchId = result.matchId
+    await startMatch.execute({ matchId })
+  })
+})
+```
+
+### Application-Layer Helper Functions
+
+Same pattern as domain helpers but `async`, since handlers are async:
+
+```typescript
+async function winGame(handler: ScorePointHandler, matchId: string, scorer: 'team1' | 'team2') {
+  for (let i = 0; i < 4; i++) await handler.execute({ matchId, scorer }) // noAd: 4 points
+}
+
+async function winSet(handler: ScorePointHandler, matchId: string, scorer: 'team1' | 'team2') {
+  for (let g = 0; g < 6; g++) await winGame(handler, matchId, scorer)
+}
+```
+
+### Standard describe groups for handlers
+
+- `domain events` — checks `eventNames` returned by ScorePoint
+- `state persistence` — loads from repository after the command and asserts domain state
+- `error cases` — verifies throws for not found, wrong status, etc.
+- `MatchDto shape` — checks the DTO fields returned by GetMatch
+- `game score mapping` — point display (GetMatch)
+- `set score mapping` — game counts per set (GetMatch)
+- `finished match` — final state assertions (GetMatch)

@@ -1,0 +1,108 @@
+---
+description: Infrastructure layer — RxDB/IndexedDB persistence, serialization, database setup
+globs: src/infrastructure/**/*.ts
+alwaysApply: false
+---
+
+# Infrastructure Layer
+
+Concrete adapters that satisfy the ports defined in the application layer. No domain logic lives here — only I/O, serialization, and framework wiring.
+
+## Folder Structure
+
+```
+src/infrastructure/
+└── persistence/
+    ├── database.ts               # Creates and exports the RxDB singleton
+    ├── match.schema.ts           # RxDB/JSON Schema for the match collection
+    ├── match.serializer.ts       # Match ↔ MatchDocument (plain JSON) conversion
+    └── rxdb-match.repository.ts  # IMatchRepository implemented with RxDB + IndexedDB
+```
+
+## Storage: RxDB + Dexie (IndexedDB)
+
+RxDB v16 with the free Dexie storage adapter — data persists across browser sessions using IndexedDB.
+
+| Package | Version | Role |
+|---|---|---|
+| `rxdb` | 16.x | Reactive database engine |
+| `dexie` | 4.x | IndexedDB adapter for RxDB |
+
+## Database Initialization
+
+`getDatabase()` is a singleton factory — safe to call multiple times:
+
+```typescript
+import { getDatabase } from './infrastructure/persistence/database'
+import { RxDBMatchRepository } from './infrastructure/persistence/rxdb-match.repository'
+
+const db = await getDatabase()
+const repository = new RxDBMatchRepository(db)
+```
+
+- Dev mode plugin is loaded automatically in `import.meta.env.DEV`.
+- The database name is `'scoreboard'` (IndexedDB key in the browser).
+
+## Serialization
+
+The domain aggregate tree (`Match → SetEntity[] → Game[] → Point[]`) is stored as a single JSON document per match.
+
+### Serialize (save)
+
+```
+Match (domain) ──serializeMatch()──► MatchDocument (JSON) ──► RxDB upsert
+```
+
+### Deserialize (load)
+
+```
+RxDB findOne ──► MatchDocument (JSON) ──deserializeMatch()──► Match (domain)
+```
+
+### restore() Methods
+
+Deserialization uses dedicated `restore()` factory methods to reconstruct domain objects **without** triggering side effects like auto-creating the first game:
+
+| Class | Method |
+|---|---|
+| `Point` | `Point.restore(id, scorer, scoredAt)` |
+| `Game` | `Game.restore(id, type, noAd, points, winner)` |
+| `SetEntity` | `SetEntity.restore(id, config, games, winner)` |
+| `Match` | `Match.restore(id, team1, team2, config, sets, status, winner)` |
+
+Never use `create()` in deserialization — it has side effects (e.g., `SetEntity.create()` auto-creates the first game).
+
+## RxDBMatchRepository
+
+```typescript
+export class RxDBMatchRepository implements IMatchRepository {
+  private readonly db: ScoreboardDatabase
+
+  constructor(db: ScoreboardDatabase) {
+    this.db = db
+  }
+
+  async findById(id: string): Promise<Match | null> {
+    const doc = await this.db.matches.findOne(id).exec()
+    if (!doc) return null
+    return deserializeMatch(doc.toJSON())
+  }
+
+  async save(match: Match): Promise<void> {
+    await this.db.matches.upsert(serializeMatch(match))
+  }
+}
+```
+
+## Schema Versioning
+
+The `matchSchema` has `version: 0`. If the document shape changes, increment the version and provide a migration strategy using RxDB's migration plugin.
+
+## Adding Other Storages
+
+To swap IndexedDB for in-memory (useful in tests or SSR):
+
+```typescript
+import { getRxStorageMemory } from 'rxdb/plugins/storage-memory'
+// replace getRxStorageDexie() with getRxStorageMemory() in database.ts
+```

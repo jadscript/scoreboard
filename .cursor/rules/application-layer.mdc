@@ -1,0 +1,166 @@
+---
+description: CQRS use cases in the application layer — commands, queries, repository port, DTOs
+globs: src/core/application/**/*.ts
+alwaysApply: false
+---
+
+# Application Layer (CQRS)
+
+## Folder Structure
+
+```
+src/core/application/
+├── shared/
+│   ├── command-handler.interface.ts   # ICommandHandler<TInput, TOutput>
+│   ├── query-handler.interface.ts     # IQueryHandler<TInput, TOutput>
+│   └── match.dto.ts                   # MatchDto, SetDto, GameDto, TeamDto
+├── commands/
+│   ├── create-match/
+│   │   ├── create-match.input.ts      # CreateMatchInput
+│   │   ├── create-match.output.ts     # CreateMatchOutput
+│   │   └── create-match.command.ts    # CreateMatchHandler (implements ICommandHandler)
+│   ├── start-match/
+│   │   ├── start-match.input.ts       # StartMatchInput
+│   │   └── start-match.command.ts     # StartMatchHandler (no output — returns void)
+│   └── score-point/
+│       ├── score-point.input.ts       # ScorePointInput
+│       ├── score-point.output.ts      # ScorePointOutput
+│       └── score-point.command.ts     # ScorePointHandler
+└── queries/
+    └── get-match/
+        ├── get-match.input.ts         # GetMatchInput
+        └── get-match.query.ts         # GetMatchHandler → maps Match to MatchDto
+```
+
+`IMatchRepository` lives at `src/core/infrastructure/database/match-repository.interface.ts` (not in `shared/`).
+
+## Handler Interfaces
+
+```typescript
+// Commands may mutate state and return minimal output
+export interface ICommandHandler<TInput, TOutput = void> {
+  execute(input: TInput): Promise<TOutput>
+}
+
+// Queries are read-only and always return data
+export interface IQueryHandler<TInput, TOutput> {
+  execute(input: TInput): Promise<TOutput>
+}
+```
+
+## Command vs Query
+
+| | Commands | Queries |
+|---|---|---|
+| Mutation | ✅ Yes | ❌ No |
+| Return value | Minimal (id, event names) | Full DTO |
+| Domain events | Pulled and returned | Not applicable |
+| Examples | `CreateMatch`, `StartMatch`, `ScorePoint` | `GetMatch` |
+
+## Writing a Handler
+
+Handlers depend on `IMatchRepository` (a port). Concrete implementation lives in the infrastructure layer and is injected into the constructor.
+
+```typescript
+// ✅ Correct — class field + constructor body (erasableSyntaxOnly compliant)
+export class ScorePointHandler
+  implements ICommandHandler<ScorePointInput, ScorePointOutput>
+{
+  private readonly matchRepository: IMatchRepository
+
+  constructor(matchRepository: IMatchRepository) {
+    this.matchRepository = matchRepository
+  }
+
+  async execute(input: ScorePointInput): Promise<ScorePointOutput> {
+    const match = await this.matchRepository.findById(input.matchId)
+    if (!match) throw new Error(`Match not found: ${input.matchId}`)
+
+    match.scorePoint(input.scorer)
+    const events = match.pullDomainEvents()      // pull before save
+    await this.matchRepository.save(match)
+
+    return { eventNames: events.map((e) => e.eventName) }
+  }
+}
+
+// ❌ Wrong — parameter property (forbidden by erasableSyntaxOnly)
+constructor(private readonly matchRepository: IMatchRepository) {}
+```
+
+## IMatchRepository (Port)
+
+```typescript
+export interface IMatchRepository {
+  findById(id: string): Promise<Match | null>
+  save(match: Match): Promise<void>
+}
+```
+
+The concrete implementation is in `src/infrastructure/` (e.g., `InMemoryMatchRepository`). Never import the concrete class from the application layer — always depend on the interface.
+
+## Domain Events in ScorePoint
+
+`match.pullDomainEvents()` empties the internal queue and returns all events emitted during the last operation. Always call **after** `scorePoint()` and **before** `save()`.
+
+Possible event names in order:
+1. `'PointScored'`
+2. `'GameWon'` (if a game ended)
+3. `'SetWon'` (if a set ended)
+4. `'MatchWon'` (if the match ended)
+
+## File Naming Convention
+
+Each use case folder follows this structure:
+
+| File | Contains | When to create |
+|---|---|---|
+| `<name>.input.ts` | `XxxInput` interface | Always |
+| `<name>.output.ts` | `XxxOutput` interface | Only when the handler returns data |
+| `<name>.command.ts` | Handler class (commands) | For commands (mutating operations) |
+| `<name>.query.ts` | Handler class (queries) | For queries (read-only operations) |
+
+Output files are omitted when the handler returns `void` (e.g., `StartMatch`) or when the output is already defined in `shared/` (e.g., `GetMatch` uses `MatchDto`).
+
+## Adding a New Use Case
+
+1. Create a folder under `commands/` or `queries/` named after the use case (kebab-case).
+2. Add `<name>.input.ts` with the `XxxInput` interface.
+3. Add `<name>.output.ts` with the `XxxOutput` interface (if needed).
+4. Add `<name>.command.ts` or `<name>.query.ts` with the handler class implementing `ICommandHandler` or `IQueryHandler`.
+5. Inject `IMatchRepository` via constructor (class field pattern).
+6. Commands: load aggregate → mutate → `pullDomainEvents()` → save → return output.
+7. Queries: load aggregate → map to DTO → return.
+
+## MatchDto
+
+```typescript
+interface MatchDto {
+  id: string
+  team1: TeamDto           // { id, name }
+  team2: TeamDto
+  status: MatchStatus      // 'not_started' | 'in_progress' | 'finished'
+  winner: PointScorer | null
+  setScore: { team1: number; team2: number }
+  currentSet: SetDto | null
+  sets: SetDto[]
+}
+
+interface SetDto {
+  id: string
+  score: { team1: number; team2: number }  // games won in this set
+  winner: PointScorer | null
+  isFinished: boolean
+  isSuperTiebreak: boolean
+  currentGame: GameDto | null
+  games: GameDto[]
+}
+
+interface GameDto {
+  id: string
+  type: GameType           // 'regular' | 'tiebreak' | 'super-tiebreak'
+  score: { team1: string; team2: string }  // display score ('0','15','Deuce','Advantage'…)
+  winner: PointScorer | null
+  isFinished: boolean
+}
+```
