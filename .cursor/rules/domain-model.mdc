@@ -1,6 +1,6 @@
 ---
 description: DDD patterns, domain entity structure and beach tennis rules
-globs: src/core/**/*.ts
+globs: packages/core/src/**/*.ts
 alwaysApply: false
 ---
 
@@ -191,7 +191,7 @@ export class Team {
 - **finalSetSuperTiebreak**: `true` by default
 - `setsToWin = Math.ceil(bestOf / 2)`
 
-## Shared Types (`src/core/domain/shared/types.ts`)
+## Shared Types (`packages/core/src/domain/shared/types.ts`)
 
 ```typescript
 type PointScorer = 'team1' | 'team2'
@@ -203,6 +203,6 @@ Always import these from `shared/types`, not from individual entities, to avoid 
 
 ## Use Cases
 
-The application layer lives in `src/core/application/` and follows CQRS. See `application-layer.mdc` for the full guide.
+The application layer lives in `packages/core/src/application/` and follows CQRS. See `application-layer.mdc` for the full guide.
 
 Commands call aggregate methods and return minimal output. Queries map the aggregate to `MatchDto` for the UI. All handlers depend on `IMatchRepository` (a port injected via constructor).

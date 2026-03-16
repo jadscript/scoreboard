@@ -11,62 +11,92 @@ Real-time beach tennis scoreboard application built with React, TypeScript and D
 | **Build** | Vite 8 |
 | **Database** | RxDB 16 + Dexie 4 (IndexedDB — persists across sessions) |
 | **Tests** | Vitest 4 |
-| **Package manager** | pnpm |
+| **Package manager** | pnpm workspaces |
+| **Monorepo** | Turborepo |
+| **CI/CD** | GitHub Actions + release-it + Conventional Commits |
 
 ## Getting Started
 
 ```bash
 pnpm install
-pnpm dev        # development server
-pnpm test       # run tests once
-pnpm test:watch # run tests in watch mode
-pnpm build      # production build
+pnpm dev          # start development server (via turbo)
+pnpm test         # run tests once (via turbo)
+pnpm build        # production build (via turbo, with cache)
+pnpm check-types  # type-check (via turbo, runs in parallel with build)
+pnpm lint         # lint (via turbo)
+```
+
+## Monorepo Structure
+
+```
+scoreboard/
+├── apps/
+│   └── frontend/              # Vite app (React + UI)
+├── packages/
+│   ├── core/                  # @scoreboard/core — DDD domain + application layer
+│   └── shared/                # shared code across apps (future)
+├── turbo.json                 # Turborepo task pipeline
+└── pnpm-workspace.yaml        # pnpm workspace declaration
 ```
 
 ## Project Structure
 
+### `packages/core` (`@scoreboard/core`)
+
+Domain and application layer — pure TypeScript, no framework dependencies.
+
 ```
-src/
-├── core/
-│   ├── domain/                    # Domain layer — pure TS, no framework deps
-│   │   ├── shared/
-│   │   │   ├── entity.base.ts         # Entity<TProps> base class
-│   │   │   ├── aggregate-root.base.ts # AggregateRoot<TProps> with event queue
-│   │   │   ├── domain-event.interface.ts
-│   │   │   └── types.ts               # PointScorer, MatchStatus, GameType
-│   │   ├── value-objects/
-│   │   │   ├── team.vo.ts             # Team (id + name)
-│   │   │   └── match-config.vo.ts     # bestOf, noAd, finalSetSuperTiebreak
-│   │   ├── events/
-│   │   │   ├── point-scored.event.ts
-│   │   │   ├── game-won.event.ts
-│   │   │   ├── set-won.event.ts
-│   │   │   └── match-won.event.ts
-│   │   ├── point.entity.ts            # scorer + scoredAt
-│   │   ├── game.entity.ts             # regular / tiebreak / super-tiebreak
-│   │   ├── set.entity.ts              # manages games, tiebreak at 6-6
-│   │   └── match.aggregate.ts         # aggregate root, fires domain events
-│   └── application/               # Application layer — CQRS use cases
-│       ├── shared/
-│       │   ├── command-handler.interface.ts  # ICommandHandler<TInput, TOutput>
-│       │   ├── query-handler.interface.ts    # IQueryHandler<TInput, TOutput>
-│       │   ├── match-repository.interface.ts # IMatchRepository (port)
-│       │   └── match.dto.ts                  # MatchDto, SetDto, GameDto, TeamDto
-│       ├── commands/
-│       │   ├── create-match/          # CreateMatch command + handler
-│       │   ├── start-match/           # StartMatch command + handler
-│       │   └── score-point/           # ScorePoint command + handler
-│       └── queries/
-│           └── get-match/             # GetMatch query + handler (Match → MatchDto)
+packages/core/src/
+├── domain/                        # Domain layer — pure TS, no framework deps
+│   ├── shared/
+│   │   ├── entity.base.ts             # Entity<TProps> base class
+│   │   ├── aggregate-root.base.ts     # AggregateRoot<TProps> with event queue
+│   │   ├── domain-event.interface.ts
+│   │   └── types.ts                   # PointScorer, MatchStatus, GameType
+│   ├── value-objects/
+│   │   ├── team.vo.ts                 # Team (id + name)
+│   │   └── match-config.vo.ts         # bestOf, noAd, finalSetSuperTiebreak
+│   ├── events/
+│   │   ├── point-scored.event.ts
+│   │   ├── game-won.event.ts
+│   │   ├── set-won.event.ts
+│   │   └── match-won.event.ts
+│   ├── point.entity.ts                # scorer + scoredAt
+│   ├── game.entity.ts                 # regular / tiebreak / super-tiebreak
+│   ├── set.entity.ts                  # manages games, tiebreak at 6-6
+│   └── match.aggregate.ts             # aggregate root, fires domain events
+├── application/                   # Application layer — CQRS use cases
+│   ├── shared/
+│   │   ├── command-handler.interface.ts  # ICommandHandler<TInput, TOutput>
+│   │   ├── query-handler.interface.ts    # IQueryHandler<TInput, TOutput>
+│   │   └── match.dto.ts                  # MatchDto, SetDto, GameDto, TeamDto
+│   ├── commands/
+│   │   ├── create-match/              # CreateMatch command + handler
+│   │   ├── start-match/               # StartMatch command + handler
+│   │   └── score-point/               # ScorePoint command + handler
+│   └── queries/
+│       └── get-match/                 # GetMatch query + handler (Match → MatchDto)
+└── infrastructure/
+    └── database/
+        ├── match-repository.interface.ts  # IMatchRepository (port)
+        └── player-repository.interface.ts # IPlayerRepository (port)
+```
+
+### `apps/frontend`
+
+```
+apps/frontend/src/
 ├── infrastructure/
 │   └── persistence/
 │       ├── database.ts                # RxDB singleton (IndexedDB via Dexie)
 │       ├── match.schema.ts            # JSON Schema for the match collection
 │       ├── match.serializer.ts        # Match ↔ MatchDocument (de)serialization
-│       └── rxdb-match.repository.ts   # IMatchRepository → RxDB + IndexedDB
+│       ├── rxdb-match.repository.ts   # IMatchRepository → RxDB + IndexedDB
+│       └── rxdb-player.repository.ts  # IPlayerRepository → RxDB + IndexedDB
 ├── hooks/
 │   └── useScoreboard.ts           # keyboard input + score state (UI bridge)
 ├── pages/
+│   ├── players/                   # Player management
 │   ├── Login.tsx
 │   └── Scoreboard.tsx
 ├── router.tsx                     # TanStack Router route tree
@@ -169,7 +199,54 @@ After every `match.scorePoint()` call, collect events with `match.pullDomainEven
 
 ## Testing
 
-Tests live in `__tests__/` folders alongside the files they test.
-Run with `pnpm test`.
+Tests live in `__tests__/` folders alongside the files they test, inside `packages/core/src/`.
+Run with `pnpm test` (runs via Turborepo across all workspace packages).
 
 Coverage includes: all value objects, all entities, the aggregate root, domain events, and all edge cases of beach tennis scoring rules.
+
+## CI/CD
+
+### Workflows
+
+| Workflow | Trigger | What it does |
+|---|---|---|
+| `ci.yml` | Pull Request → `main` | Validates commits, `check-types`, `test`, `build` |
+| `release.yml` | Push → `main` | Runs full CI, then detects changes and releases per package |
+
+### Conventional Commits
+
+This repository follows [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+type(scope): description
+```
+
+**Valid scopes:** `core`, `frontend`, `shared`, `ci`, `deps`, `release`
+
+| Type | Example | Version bump |
+|---|---|---|
+| `feat` | `feat(core): add super tiebreak` | minor |
+| `fix` | `fix(frontend): correct score display` | patch |
+| `feat!` / `BREAKING CHANGE` | `feat(core)!: redesign match api` | major |
+| `chore`, `docs`, `ci`, `test` | `chore(deps): update vitest` | no release |
+
+### Automatic releases
+
+Each package has independent tags and GitHub Releases:
+
+| Package | Tag example | Config file |
+|---|---|---|
+| `@scoreboard/core` | `@scoreboard/core@1.2.3` | `packages/core/.release-it.json` |
+| `scoreboard` (frontend) | `scoreboard@2.0.0` | `apps/frontend/.release-it.json` |
+
+A release is only triggered when there are commits since the last tag that touch the package directory. Each package's `CHANGELOG.md` is generated automatically.
+
+### Manual release
+
+```bash
+# @scoreboard/core only
+cd packages/core && pnpm run release
+
+# frontend only
+cd apps/frontend && pnpm run release
+```

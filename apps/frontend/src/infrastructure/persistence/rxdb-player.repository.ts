@@ -1,6 +1,6 @@
-import type { IPlayerRepository } from '../../core/infrastructure/database/player-repository.interface'
+import type { IPlayerRepository } from '@scoreboard/core/infrastructure/database/player-repository.interface'
 import type { ScoreboardDatabase } from './database'
-import { Player } from '../../core/domain/player.entity'
+import { Player } from '@scoreboard/core/domain/player.entity'
 import type { PlayerDocument } from './player.schema'
 
 export class RxDBPlayerRepository implements IPlayerRepository {

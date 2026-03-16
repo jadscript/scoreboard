@@ -1,5 +1,5 @@
 import type { RxJsonSchema } from 'rxdb'
-import type { Gender } from '../../core/domain/player.entity'
+import type { Gender } from '@scoreboard/core/domain/player.entity'
 
 export interface PlayerDocument {
   id: string

@@ -1,5 +1,5 @@
-import type { IMatchRepository } from '../../core/infrastructure/database/match-repository.interface'
-import type { Match } from '../../core/domain/match.aggregate'
+import type { IMatchRepository } from '@scoreboard/core/infrastructure/database/match-repository.interface'
+import type { Match } from '@scoreboard/core/domain/match.aggregate'
 import type { ScoreboardDatabase } from './database'
 import { serializeMatch, deserializeMatch, type MatchDocument } from './match.serializer'
 

@@ -1,6 +1,6 @@
 ---
 description: CQRS use cases in the application layer — commands, queries, repository port, DTOs
-globs: src/core/application/**/*.ts
+globs: packages/core/src/application/**/*.ts
 alwaysApply: false
 ---
 
@@ -9,7 +9,7 @@ alwaysApply: false
 ## Folder Structure
 
 ```
-src/core/application/
+packages/core/src/application/
 ├── shared/
 │   ├── command-handler.interface.ts   # ICommandHandler<TInput, TOutput>
 │   ├── query-handler.interface.ts     # IQueryHandler<TInput, TOutput>
@@ -32,7 +32,7 @@ src/core/application/
         └── get-match.query.ts         # GetMatchHandler → maps Match to MatchDto
 ```
 
-`IMatchRepository` lives at `src/core/infrastructure/database/match-repository.interface.ts` (not in `shared/`).
+`IMatchRepository` lives at `packages/core/src/infrastructure/database/match-repository.interface.ts` (not in `shared/`).
 
 ## Handler Interfaces
 
@@ -97,7 +97,7 @@ export interface IMatchRepository {
 }
 ```
 
-The concrete implementation is in `src/infrastructure/` (e.g., `InMemoryMatchRepository`). Never import the concrete class from the application layer — always depend on the interface.
+The concrete implementation is in `apps/frontend/src/infrastructure/` (e.g., `RxDBMatchRepository`). Never import the concrete class from the application layer — always depend on the interface.
 
 ## Domain Events in ScorePoint
 

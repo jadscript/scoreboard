@@ -1,4 +1,4 @@
-import type { Gender } from '../../../core/domain/player.entity'
+import type { Gender } from '@scoreboard/core/domain/player.entity'
 
 interface Props {
   gender: Gender

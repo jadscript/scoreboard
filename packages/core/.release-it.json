@@ -1,0 +1,20 @@
+{
+  "git": {
+    "tagName": "@scoreboard/core@${version}",
+    "commitMessage": "chore(release): @scoreboard/core@${version} [skip ci]",
+    "tagAnnotation": "@scoreboard/core v${version}"
+  },
+  "github": {
+    "release": true,
+    "releaseName": "@scoreboard/core v${version}"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "conventionalcommits",
+      "infile": "CHANGELOG.md",
+      "gitRawCommitsOpts": {
+        "path": "."
+      }
+    }
+  }
+}

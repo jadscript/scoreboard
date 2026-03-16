@@ -1,6 +1,6 @@
 ---
 description: Infrastructure layer — RxDB/IndexedDB persistence, serialization, database setup
-globs: src/infrastructure/**/*.ts
+globs: apps/frontend/src/infrastructure/**/*.ts
 alwaysApply: false
 ---
 
@@ -11,12 +11,14 @@ Concrete adapters that satisfy the ports defined in the application layer. No do
 ## Folder Structure
 
 ```
-src/infrastructure/
+apps/frontend/src/infrastructure/
 └── persistence/
     ├── database.ts               # Creates and exports the RxDB singleton
     ├── match.schema.ts           # RxDB/JSON Schema for the match collection
     ├── match.serializer.ts       # Match ↔ MatchDocument (plain JSON) conversion
-    └── rxdb-match.repository.ts  # IMatchRepository implemented with RxDB + IndexedDB
+    ├── rxdb-match.repository.ts  # IMatchRepository implemented with RxDB + IndexedDB
+    ├── player.schema.ts          # RxDB/JSON Schema for the player collection
+    └── rxdb-player.repository.ts # IPlayerRepository implemented with RxDB + IndexedDB
 ```
 
 ## Storage: RxDB + Dexie (IndexedDB)

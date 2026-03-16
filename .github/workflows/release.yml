@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Check, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm check-types
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  release:
+    name: Release
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Release @scoreboard/core
+        run: |
+          LAST_TAG=$(git tag -l "@scoreboard/core@*" --sort=-version:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            CHANGED=1
+          else
+            CHANGED=$(git log "${LAST_TAG}..HEAD" --oneline -- packages/core/ | wc -l | tr -d ' ')
+          fi
+          if [ "$CHANGED" -gt "0" ]; then
+            echo "Changes detected in packages/core — releasing @scoreboard/core"
+            cd packages/core && pnpm exec release-it --ci
+          else
+            echo "No changes in packages/core — skipping"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release scoreboard (frontend)
+        run: |
+          LAST_TAG=$(git tag -l "scoreboard@*" --sort=-version:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            CHANGED=1
+          else
+            CHANGED=$(git log "${LAST_TAG}..HEAD" --oneline -- apps/frontend/ | wc -l | tr -d ' ')
+          fi
+          if [ "$CHANGED" -gt "0" ]; then
+            echo "Changes detected in apps/frontend — releasing scoreboard"
+            cd apps/frontend && pnpm exec release-it --ci
+          else
+            echo "No changes in apps/frontend — skipping"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

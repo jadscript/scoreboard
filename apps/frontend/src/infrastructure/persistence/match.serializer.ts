@@ -1,11 +1,11 @@
-import type { MatchStatus, PointScorer, GameType, Gender, MatchType } from '../../core/domain/shared/types'
-import { Match } from '../../core/domain/match.aggregate'
-import { SetEntity } from '../../core/domain/set.entity'
-import { Game } from '../../core/domain/game.entity'
-import { Point } from '../../core/domain/point.entity'
-import { Player } from '../../core/domain/player.entity'
-import { Team } from '../../core/domain/value-objects/team.vo'
-import { MatchConfig } from '../../core/domain/value-objects/match-config.vo'
+import type { MatchStatus, PointScorer, GameType, Gender, MatchType } from '@scoreboard/core/domain/shared/types'
+import { Match } from '@scoreboard/core/domain/match.aggregate'
+import { SetEntity } from '@scoreboard/core/domain/set.entity'
+import { Game } from '@scoreboard/core/domain/game.entity'
+import { Point } from '@scoreboard/core/domain/point.entity'
+import { Player } from '@scoreboard/core/domain/player.entity'
+import { Team } from '@scoreboard/core/domain/value-objects/team.vo'
+import { MatchConfig } from '@scoreboard/core/domain/value-objects/match-config.vo'
 
 // ---------------------------------------------------------------------------
 // Plain JSON types stored in RxDB / IndexedDB

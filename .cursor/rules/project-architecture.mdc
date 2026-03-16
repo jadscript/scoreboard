@@ -17,50 +17,84 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 | Language | TypeScript 5.9 |
 | Build | Vite 8 |
 | Styling | Tailwind CSS 4 (`@tailwindcss/vite` plugin) |
-| Routing | TanStack Router (code-based, `src/router.tsx`) |
+| Routing | TanStack Router (code-based, `apps/frontend/src/router.tsx`) |
 | Testing | Vitest 4 |
-| Package manager | pnpm |
+| Package manager | pnpm workspaces |
+| Monorepo | Turborepo |
+| CI/CD | GitHub Actions + release-it + Conventional Commits |
 
-## Architecture: DDD + Clean Architecture
-
-```
-src/
-├── core/
-│   ├── domain/               ← Domain layer (pure, no framework dependencies)
-│   │   ├── shared/           ← Base classes and shared types
-│   │   ├── value-objects/    ← Immutable VOs (Team, MatchConfig)
-│   │   ├── events/           ← Domain events (PointScored, GameWon, SetWon, MatchWon)
-│   │   ├── point.entity.ts
-│   │   ├── game.entity.ts
-│   │   ├── set.entity.ts
-│   │   └── match.aggregate.ts  ← Aggregate root
-│   └── application/          ← Use cases (CQRS)
-│       ├── shared/           ← ICommandHandler, IQueryHandler, IMatchRepository, MatchDto
-│       ├── commands/         ← CreateMatch, StartMatch, ScorePoint
-│       └── queries/          ← GetMatch → MatchDto
-├── hooks/                    ← React custom hooks (bridge application → UI)
-├── pages/                    ← Route-level components (Login, Scoreboard)
-└── router.tsx                ← TanStack Router route tree
-```
-
-## Infrastructure Layer
+## Monorepo Structure
 
 ```
-src/infrastructure/
-└── persistence/
-    ├── database.ts               # RxDB singleton (IndexedDB via Dexie)
-    ├── match.schema.ts           # JSON Schema for the match collection
-    ├── match.serializer.ts       # Match ↔ MatchDocument serialization
-    └── rxdb-match.repository.ts  # IMatchRepository → RxDB + IndexedDB
+scoreboard/                     ← workspace root
+├── apps/
+│   └── frontend/               ← Vite app (React + UI)
+├── packages/
+│   ├── core/                   ← @scoreboard/core — DDD domain + application layer
+│   └── shared/                 ← shared code (future)
+├── turbo.json                  ← Turborepo task pipeline
+└── pnpm-workspace.yaml         ← pnpm workspace declaration
 ```
 
-Storage: **RxDB 16 + Dexie 4** — data persists across browser sessions in IndexedDB.
+Turborepo tasks (run from root): `dev`, `build`, `check-types`, `lint`, `test`.
+The `build` and `check-types` scripts are **separate** so Turborepo can run them in parallel.
+
+## Package: `@scoreboard/core` (`packages/core`)
+
+Pure TypeScript — no React, no Vite, no Tailwind. Framework-agnostic domain and application layer.
+
+```
+packages/core/src/
+├── domain/               ← Domain layer (pure, no framework dependencies)
+│   ├── shared/           ← Base classes and shared types
+│   ├── value-objects/    ← Immutable VOs (Team, MatchConfig)
+│   ├── events/           ← Domain events (PointScored, GameWon, SetWon, MatchWon)
+│   ├── point.entity.ts
+│   ├── game.entity.ts
+│   ├── set.entity.ts
+│   └── match.aggregate.ts  ← Aggregate root
+├── application/          ← Use cases (CQRS)
+│   ├── shared/           ← ICommandHandler, IQueryHandler, MatchDto
+│   ├── commands/         ← CreateMatch, StartMatch, ScorePoint
+│   └── queries/          ← GetMatch → MatchDto
+└── infrastructure/
+    └── database/         ← Repository interfaces (ports)
+        ├── match-repository.interface.ts
+        └── player-repository.interface.ts
+```
+
+## App: `apps/frontend`
+
+```
+apps/frontend/src/
+├── infrastructure/       ← Concrete adapters (RxDB + IndexedDB)
+│   └── persistence/
+│       ├── database.ts
+│       ├── match.schema.ts
+│       ├── match.serializer.ts
+│       ├── rxdb-match.repository.ts
+│       └── rxdb-player.repository.ts
+├── hooks/                ← React custom hooks (bridge application → UI)
+├── pages/                ← Route-level components (Login, Scoreboard, Players)
+└── router.tsx            ← TanStack Router route tree
+```
+
+Imports from `@scoreboard/core` use the package alias (e.g. `import { Match } from '@scoreboard/core/domain/match.aggregate'`).
+
+## CI/CD
+
+GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
+
+- `ci.yml` — commitlint + check-types + test + build (triggers on PRs)
+- `release.yml` — CI + per-package release with path-based change detection (triggers on push to `main`)
+- Commits follow `type(scope): description` — scopes: `core`, `frontend`, `shared`, `ci`, `deps`, `release`
 
 ## Key Architectural Decisions
 
-1. **Domain layer is framework-agnostic** — no React, no Vite, no Tailwind inside `src/core/domain/`.
+1. **`@scoreboard/core` is framework-agnostic** — no React, no Vite, no Tailwind inside `packages/core/src/`.
 2. **Aggregate root (`Match`) is the only public mutation surface** — call `match.start()` and `match.scorePoint()`. Never mutate inner entities directly.
 3. **Domain events** are collected via `match.pullDomainEvents()` after each mutation and dispatched by the application layer.
 4. **No parameter properties** in constructors — `erasableSyntaxOnly: true` in tsconfig. Use the Props pattern instead.
 5. **Factory methods** (`Entity.create()`, `Entity.restore()`) replace `new Entity(...)` calls from outside the class.
-6. **Tests live in `__tests__/`** folders at the same level as the file they test.
+6. **Tests live in `__tests__/`** folders at the same level as the file they test, inside `packages/core/src/`.
+7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
