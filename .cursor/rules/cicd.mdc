@@ -38,10 +38,11 @@ Each releasable package has its own `.release-it.json`. The workflow detects cha
 | `scoreboard` | `apps/frontend/` | `scoreboard@X.Y.Z` | `apps/frontend/.release-it.json` |
 
 Per package, release-it:
-1. Analyses commits since the last package tag (filtered by path `.`)
-2. Determines the semantic bump via `@release-it/conventional-changelog`
-3. Updates `package.json` + generates/updates `CHANGELOG.md`
-4. Creates a release commit, tag and GitHub Release
+1. Analyses **all** commits since the last package tag to determine the semantic bump
+2. Updates `package.json` + generates/updates `CHANGELOG.md`
+3. Creates a release commit, tag and GitHub Release
+
+The decision of **whether** to release is made by the workflow path detection (`git log <last-tag>..HEAD -- <package-path>/`). The decision of **what version** to bump is made by `@release-it/conventional-changelog` reading all commits. This separation avoids false negatives where path-filtered commits are all `chore:` type and would otherwise prevent a release.
 
 ## Manual release
 
