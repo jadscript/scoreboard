@@ -7,8 +7,8 @@
 
 html, body {
   font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
-  background: #000;
-  color: #f1f5f9;
+  background: #e6d7a6;
+  color: #000;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -33,4 +33,26 @@ html, body {
   100% {
     transform: scale(1);
   }
+}
+
+.score-flash-green {
+  animation: flash-green 1s ease forwards;
+}
+
+.score-flash-blue {
+  animation: flash-blue 1s ease forwards;
+}
+
+@keyframes flash-green {
+  0%   { background-color: transparent; color: #15803d; }
+  10%  { background-color: #15803d; color: #ffffff; }
+  80%  { background-color: #15803d; color: #ffffff; }
+  100% { background-color: transparent; color: #15803d; }
+}
+
+@keyframes flash-blue {
+  0%   { background-color: transparent; color: #1d4ed8; }
+  10%  { background-color: #1d4ed8; color: #ffffff; }
+  80%  { background-color: #1d4ed8; color: #ffffff; }
+  100% { background-color: transparent; color: #1d4ed8; }
 }

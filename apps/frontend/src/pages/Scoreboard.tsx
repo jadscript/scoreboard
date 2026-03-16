@@ -1,5 +1,5 @@
 import { Maximize, Minimize, RotateCcw, Undo2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useScoreboard } from "../hooks/useScoreboard";
 
 const Divider = () => (
@@ -8,6 +8,8 @@ const Divider = () => (
 
 export function ScoreboardPage() {
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [scoredTeam, setScoredTeam] = useState<"team1" | "team2" | null>(null)
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -19,6 +21,12 @@ export function ScoreboardPage() {
     }
   }
 
+  const triggerFlash = (team: "team1" | "team2") => {
+    if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
+    setScoredTeam(team);
+    flashTimeoutRef.current = setTimeout(() => setScoredTeam(null), 1000);
+  };
+
   const {
     handleScore,
     handleUndo,
@@ -28,11 +36,17 @@ export function ScoreboardPage() {
     games,
     setHistory,
     serving,
-  } = useScoreboard();
+    courtSwitched,
+  } = useScoreboard({ onScore: triggerFlash });
+
+  const handleScoreWithFlash = (team: "team1" | "team2") => {
+    handleScore(team);
+    triggerFlash(team);
+  };
 
   return (
-    <div className="flex flex-col items-center justify-between">
-      <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-screen">
+    <div className="flex flex-col items-center justify-between p-4 w-full h-screen">
+      <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-full border-8 border-black">
         <div className="absolute top-0 left-0 right-0 flex justify-center">
           <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-full max-[459px]:rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
             {/* Info group: team labels + set scores */}
@@ -105,8 +119,8 @@ export function ScoreboardPage() {
         </div>
 
         <div
-          className={`flex items-center justify-center h-full bg-green-700 hover:bg-green-600 transition-colors cursor-pointer ${serving === "team1" ? "order-1 border-r-4" : "order-2 border-l-4"}`}
-          onClick={() => handleScore("team1")}
+          className={`flex items-center justify-center h-full cursor-pointer border-black ${!courtSwitched ? "order-1 border-r-4" : "order-2 border-l-4"} ${scoredTeam === "team1" ? "score-flash-green" : "text-green-700 hover:bg-green-600 hover:text-white transition-colors"}`}
+          onClick={() => handleScoreWithFlash("team1")}
         >
           <h1
             className={`font-bold w-full text-center text-[25vw] leading-none score-font ${team1Score === "40" ? "animate-transform" : ""}`}
@@ -115,8 +129,8 @@ export function ScoreboardPage() {
           </h1>
         </div>
         <div
-          className={`flex items-center justify-center h-full bg-blue-700 hover:bg-blue-600 transition-colors cursor-pointer ${serving === "team2" ? "order-1 border-r-4" : "order-2 border-l-4"}`}
-          onClick={() => handleScore("team2")}
+          className={`flex items-center justify-center h-full cursor-pointer border-black ${courtSwitched ? "order-1 border-r-4" : "order-2 border-l-4"} ${scoredTeam === "team2" ? "score-flash-blue" : "text-blue-700 hover:bg-blue-600 hover:text-white transition-colors"}`}
+          onClick={() => handleScoreWithFlash("team2")}
         >
           <h1
             className={`font-bold w-full text-center text-[25vw] leading-none score-font ${team2Score === "40" ? "animate-transform" : ""}`}

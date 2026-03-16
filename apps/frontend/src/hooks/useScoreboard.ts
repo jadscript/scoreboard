@@ -140,8 +140,12 @@ function reducer(state: State, action: Action): State {
 
 const POINT_LABELS = ['0', '15', '30', '40'] as const
 
-export function useScoreboard() {
+export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
+  const onScoreRef = useRef(options?.onScore)
+  useEffect(() => {
+    onScoreRef.current = options?.onScore
+  })
 
   const handleScore = useCallback((team: Team) => {
     dispatch({ type: 'SCORE', team })
@@ -204,6 +208,7 @@ export function useScoreboard() {
           return
         }
         handleScore(team)
+        onScoreRef.current?.(team)
         return
       }
 
@@ -229,12 +234,14 @@ export function useScoreboard() {
         }
         lastKeyUpRef.current = null
         handleScore('team2')
+        onScoreRef.current?.('team2')
       } else {
         lastKeyUpRef.current = now
         singleClickTimerRef.current = setTimeout(() => {
           if (lastKeyUpRef.current === now) {
             lastKeyUpRef.current = null
             handleScore('team1')
+            onScoreRef.current?.('team1')
           }
           singleClickTimerRef.current = null
         }, DOUBLE_CLICK_THRESHOLD_MS)
@@ -284,6 +291,14 @@ export function useScoreboard() {
     return totalGames % 2 === 1 ? 'team2' : 'team1'
   }, [state.games])
 
+  // Beach tennis court-switching rule: teams switch ends after the 1st game,
+  // then after every 2 games (total 1, 2, 5, 6, 9, 10 …).
+  // Formula: switched when floor((total + 1) / 2) is odd.
+  const courtSwitched = useMemo((): boolean => {
+    const totalGames = state.games.team1 + state.games.team2
+    return Math.floor((totalGames + 1) / 2) % 2 === 1
+  }, [state.games])
+
   return {
     points: state.points,
     games: state.games,
@@ -291,6 +306,7 @@ export function useScoreboard() {
     setHistory: state.setHistory,
     isTiebreak: state.isTiebreak,
     serving,
+    courtSwitched,
     team1Score: pointDisplay.team1,
     team2Score: pointDisplay.team2,
     isDeuce,
