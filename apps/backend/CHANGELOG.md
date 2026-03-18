@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.3.0...@scoreboard/backend@0.4.0) (2026-03-18)
+
+### Features
+
+* **backend:** implement OnModuleInit to log backend port on startup ([981ecfa](https://github.com/jadscript/scoreboard/commit/981ecfa6cef91fabccf2eddf910a86a9590981bc))
+
 ## [0.3.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.2.0...@scoreboard/backend@0.3.0) (2026-03-18)
 
 ## 0.2.0 (2026-03-18)
