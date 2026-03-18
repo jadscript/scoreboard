@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.4.0...@scoreboard/backend@0.5.0) (2026-03-18)
+
+### Features
+
+* **backend:** log CORS configuration details on module initialization ([022765d](https://github.com/jadscript/scoreboard/commit/022765dd96f974ebe2b21c42c43e16894924b3c1))
+
 ## [0.4.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.3.0...@scoreboard/backend@0.4.0) (2026-03-18)
 
 ### Features
