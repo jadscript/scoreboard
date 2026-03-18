@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { appConfig } from './config/app.config';
 import { databaseConfig } from './config/database.config';
 import { validationSchema } from './config/validation.schema';
+import { OnModuleInit } from '@nestjs/common';
+import { AppConfig } from './config/app.config';
+import { Logger } from '@nestjs/common';
 
 @Module({
   imports: [
@@ -22,4 +25,12 @@ import { validationSchema } from './config/validation.schema';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private readonly configService: ConfigService) {}
+  private readonly logger = new Logger(AppModule.name);
+
+  onModuleInit() {
+    const appConfig = this.configService.get<AppConfig>('app')!;
+    this.logger.log(`Backend running on port ${appConfig.port}`);
+  }
+}
