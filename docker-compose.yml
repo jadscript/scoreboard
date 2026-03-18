@@ -1,0 +1,49 @@
+services:
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:18.3-alpine
+    container_name: scoreboard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # Main app database — created automatically by the entrypoint
+      POSTGRES_DB: scoreboard_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Creates additional databases (e.g. keycloak) on first run
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scoreboard_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Keycloak ──────────────────────────────────────────────────────────────
+  keycloak:
+    image: keycloak/keycloak:26.5.5
+    container_name: scoreboard-keycloak
+    restart: unless-stopped
+    command: start-dev
+    environment:
+      # Backed by postgres instead of the embedded H2 database
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      # Admin credentials (dev only — override in production)
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      # Relaxed hostname/TLS settings for local development
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

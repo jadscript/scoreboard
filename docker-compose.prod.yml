@@ -1,0 +1,95 @@
+services:
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:18.3-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    # Not exposed outside the stack — only reachable via the internal network
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Keycloak ──────────────────────────────────────────────────────────────
+  # Runs in production mode (start) behind a TLS-terminating reverse proxy
+  # (e.g. nginx, Traefik, Caddy). The proxy must forward X-Forwarded-* headers.
+  keycloak:
+    image: keycloak/keycloak:26.5.5
+    restart: always
+    command: start
+    environment:
+      # Database
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Admin bootstrap — only used on first startup
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Public hostname served by the reverse proxy (e.g. auth.example.com)
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      # Allow HTTP internally — TLS is terminated at the reverse proxy
+      KC_HTTP_ENABLED: "true"
+      # Trust X-Forwarded-Proto / X-Forwarded-Host from the proxy
+      KC_PROXY_HEADERS: xforwarded
+      # Health and metrics endpoints (accessible only on the internal network)
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    ports:
+      # Expose only to the host — bind to localhost if behind a local proxy,
+      # or let the reverse proxy container access via the public network.
+      - "127.0.0.1:8080:8080"
+    networks:
+      - internal
+      - public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  # Postgres lives only here — invisible outside the stack
+  internal:
+    driver: bridge
+    internal: true
+  # Keycloak is reachable by the reverse proxy through this network
+  public:
+    driver: bridge
+
+volumes:
+  postgres_data:

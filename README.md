@@ -276,6 +276,55 @@ cd apps/frontend && pnpm run release
 cd apps/backend && pnpm run release
 ```
 
+## Infrastructure (Docker Compose)
+
+### Development
+
+Starts PostgreSQL and Keycloak locally. Credentials are hardcoded for convenience.
+
+```bash
+docker compose up -d          # start
+docker compose down           # stop (keeps data volume)
+docker compose down -v        # stop + wipe volumes
+```
+
+| Service | URL |
+|---|---|
+| PostgreSQL | `localhost:5432` |
+| Keycloak admin console | `http://localhost:8080` (admin / admin) |
+
+### Production
+
+`docker-compose.prod.yml` is hardened for production:
+
+- No credentials in the file — all loaded from environment variables
+- PostgreSQL not exposed to the host — only reachable via the internal Docker network
+- Keycloak runs in `start` (production) mode with `KC_PROXY_HEADERS=xforwarded` for reverse proxy support
+- Resource limits (`memory`, `cpus`) and `json-file` log rotation on every service
+- Explicit `internal` (postgres-only) and `public` (keycloak + proxy) networks
+
+```bash
+# 1. Copy the example and fill in real secrets
+cp .env.prod.example .env.prod
+# edit .env.prod
+
+# 2. Start
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+> `.env.prod` is gitignored. Never commit it.
+
+**Required variables** (see `.env.prod.example` for full list):
+
+| Variable | Description |
+|---|---|
+| `POSTGRES_USER` | Database superuser |
+| `POSTGRES_PASSWORD` | Database password |
+| `POSTGRES_DB` | Main app database name |
+| `KEYCLOAK_ADMIN` | Keycloak bootstrap admin user |
+| `KEYCLOAK_ADMIN_PASSWORD` | Keycloak bootstrap admin password |
+| `KC_HOSTNAME` | Public hostname for Keycloak (e.g. `auth.example.com`) |
+
 ## Backend Configuration
 
 The backend uses `@nestjs/config` with Joi schema validation. The app **fails fast at startup** if a required env var is missing or invalid.
