@@ -1,0 +1,26 @@
+# Dependencies — reinstalled inside the container via pnpm
+**/node_modules
+
+# Build outputs — rebuilt inside the container
+**/dist
+**/build
+**/.turbo
+
+# Test artifacts
+**/coverage
+**/.nyc_output
+
+# Env files with real secrets — never go into the image
+**/.env
+**/.env.*.local
+**/.env.production
+
+# Git
+.git
+**/.git
+
+# IDE / OS
+.idea
+.vscode
+.DS_Store
+**/*.log
