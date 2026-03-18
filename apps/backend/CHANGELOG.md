@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.3.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.2.0...@scoreboard/backend@0.3.0) (2026-03-18)
+
 ## 0.2.0 (2026-03-18)
 
 ### Features
