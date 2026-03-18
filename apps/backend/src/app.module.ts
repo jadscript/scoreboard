@@ -32,5 +32,7 @@ export class AppModule implements OnModuleInit {
   onModuleInit() {
     const appConfig = this.configService.get<AppConfig>('app')!;
     this.logger.log(`Backend running on port ${appConfig.port}`);
+    this.logger.log(`CORS enabled: ${appConfig.corsEnabled}`);
+    this.logger.log(`CORS origins: ${appConfig.corsOrigins.join(', ')}`);
   }
 }
