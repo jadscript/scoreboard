@@ -76,9 +76,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Release scoreboard (frontend)
+      - name: Release @scoreboard/frontend
         run: |
-          LAST_TAG=$(git tag -l "scoreboard@*" --sort=-version:refname | head -1)
+          LAST_TAG=$(git tag -l "@scoreboard/frontend@*" --sort=-version:refname | head -1)
           if [ -z "$LAST_TAG" ]; then
             CHANGED=1
           else
@@ -89,6 +89,23 @@ jobs:
             cd apps/frontend && pnpm exec release-it --ci
           else
             echo "No changes in apps/frontend — skipping"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release @scoreboard/backend
+        run: |
+          LAST_TAG=$(git tag -l "@scoreboard/backend@*" --sort=-version:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            CHANGED=1
+          else
+            CHANGED=$(git log "${LAST_TAG}..HEAD" --oneline -- apps/backend/ | wc -l | tr -d ' ')
+          fi
+          if [ "$CHANGED" -gt "0" ]; then
+            echo "Changes detected in apps/backend — releasing @scoreboard/backend"
+            cd apps/backend && pnpm exec release-it --ci
+          else
+            echo "No changes in apps/backend — skipping"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

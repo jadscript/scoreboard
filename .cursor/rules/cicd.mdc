@@ -17,7 +17,7 @@ alwaysApply: false
 
 Format: `type(scope): description`
 
-**Valid scopes:** `core` · `frontend` · `shared` · `ci` · `deps` · `release`
+**Valid scopes:** `core` · `frontend` · `backend` · `shared` · `ci` · `deps` · `release`
 
 | Type | Version bump |
 |---|---|
@@ -35,7 +35,8 @@ Each releasable package has its own `.release-it.json`. The workflow detects cha
 | Package | Directory | Tag | Config |
 |---|---|---|---|
 | `@scoreboard/core` | `packages/core/` | `@scoreboard/core@X.Y.Z` | `packages/core/.release-it.json` |
-| `scoreboard` | `apps/frontend/` | `scoreboard@X.Y.Z` | `apps/frontend/.release-it.json` |
+| `@scoreboard/frontend` | `apps/frontend/` | `@scoreboard/frontend@X.Y.Z` | `apps/frontend/.release-it.json` |
+| `@scoreboard/backend` | `apps/backend/` | `@scoreboard/backend@X.Y.Z` | `apps/backend/.release-it.json` |
 
 Per package, release-it:
 1. Analyses **all** commits since the last package tag to determine the semantic bump
@@ -52,9 +53,12 @@ cd packages/core && pnpm run release
 
 # frontend
 cd apps/frontend && pnpm run release
+
+# backend
+cd apps/backend && pnpm run release
 ```
 
-Both commands open release-it's interactive prompt. Use `--ci` to run without prompts.
+All commands open release-it's interactive prompt. Use `--ci` to run without prompts.
 
 ## Adding a new releasable package
 

@@ -1,0 +1,95 @@
+---
+description: NestJS backend architecture — configuration module, env vars, CORS, Dockerfile
+globs: apps/backend/**/*.ts,apps/backend/.env*,apps/backend/Dockerfile
+alwaysApply: false
+---
+
+# Backend (`@scoreboard/backend`)
+
+NestJS 11 REST API living at `apps/backend/`. Imports `@scoreboard/core` via workspace dependency — path aliases in `tsconfig.json` resolve the TypeScript source directly (`@scoreboard/core/*` → `../../packages/core/src/*`).
+
+## Configuration module
+
+`ConfigModule` (from `@nestjs/config`) is registered **globally** in `AppModule` with:
+
+- Joi schema validation (`validationSchema`) — the app **crashes at startup** if any required env var is missing or invalid.
+- Namespaced config factories (`registerAs`) — typed access via `ConfigService.get<T>('namespace')`.
+- Env file loading order (first match wins): `.env.<NODE_ENV>.local` → `.env.<NODE_ENV>` → `.env`.
+
+### Namespaces
+
+| Namespace | Type | File |
+|---|---|---|
+| `app` | `AppConfig` | `src/config/app.config.ts` |
+| `database` | `DatabaseConfig` | `src/config/database.config.ts` |
+
+### Consuming config in a service or controller
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { AppConfig } from '../config/app.config';
+import type { DatabaseConfig } from '../config/database.config';
+
+@Injectable()
+export class SomeService {
+  private readonly appCfg: AppConfig;
+  private readonly dbCfg: DatabaseConfig;
+
+  constructor(private readonly configService: ConfigService) {
+    this.appCfg = this.configService.get<AppConfig>('app')!;
+    this.dbCfg = this.configService.get<DatabaseConfig>('database')!;
+  }
+}
+```
+
+Always use the typed namespace getter (`configService.get<T>('namespace')`), never `process.env` directly.
+
+## Environment variables
+
+| Variable | Type | Default | Required | Description |
+|---|---|---|---|---|
+| `NODE_ENV` | `development \| production \| test` | `development` | no | Runtime environment |
+| `PORT` | number | `3000` | no | HTTP port |
+| `CORS_ENABLED` | boolean | `true` | no | Enable/disable CORS globally |
+| `CORS_ORIGINS` | string (comma-separated URLs) | `http://localhost:5173` | no | Allowed CORS origins |
+| `DATABASE_URL` | PostgreSQL URI | — | **yes** | Full connection string |
+
+### Env file conventions
+
+| File | Committed | Purpose |
+|---|---|---|
+| `.env.example` | yes | Template — copy when setting up locally |
+| `.env.development` | yes | Safe development defaults |
+| `.env.development.local` | **no** (gitignored) | Local overrides — never commit |
+| `.env.production` | **no** | Injected by CI/CD or container orchestration |
+
+### Adding a new env var
+
+1. Add the variable to `validationSchema` in `src/config/validation.schema.ts` (Joi rule + default/required).
+2. Add the typed field to the appropriate config factory (`app.config.ts` or `database.config.ts`), or create a new namespace file and register it in `AppModule`.
+3. Add the variable with a placeholder value to `.env.example`.
+4. Add it with a safe default to `.env.development`.
+
+## CORS
+
+Configured in `main.ts` using `AppConfig`. Rules:
+
+- If `corsEnabled` is `false` → CORS is fully disabled.
+- If `corsEnabled` is `true` → only origins in `corsOrigins` (parsed from `CORS_ORIGINS`) are allowed.
+- `credentials: true` is always set when CORS is enabled.
+
+## Docker
+
+`apps/backend/Dockerfile` uses a 4-stage build:
+
+1. **pruner** — `turbo prune @scoreboard/backend --docker`
+2. **installer** — `pnpm install --frozen-lockfile` on the pruned subset
+3. **builder** — `pnpm turbo build --filter=@scoreboard/backend`
+4. **runner** — `node:22-alpine`, runs `node dist/main`, exposes port `3000`
+
+Build from the **monorepo root**:
+
+```bash
+docker build -f apps/backend/Dockerfile .
+```

@@ -13,12 +13,14 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 
 | Layer | Technology |
 |---|---|
-| Framework | React 19 |
+| Frontend framework | React 19 |
+| Backend framework | NestJS 11 |
 | Language | TypeScript 5.9 |
-| Build | Vite 8 |
+| Frontend build | Vite 8 |
+| Backend build | NestJS CLI (webpack) |
 | Styling | Tailwind CSS 4 (`@tailwindcss/vite` plugin) |
 | Routing | TanStack Router (code-based, `apps/frontend/src/router.tsx`) |
-| Testing | Vitest 4 |
+| Testing | Vitest 4 (frontend/core) · Jest 30 (backend) |
 | Package manager | pnpm workspaces |
 | Monorepo | Turborepo |
 | CI/CD | GitHub Actions + release-it + Conventional Commits |
@@ -28,7 +30,8 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 ```
 scoreboard/                     ← workspace root
 ├── apps/
-│   └── frontend/               ← Vite app (React + UI)
+│   ├── frontend/               ← Vite app (React + UI) (@scoreboard/frontend)
+│   └── backend/                ← NestJS API (@scoreboard/backend)
 ├── packages/
 │   ├── core/                   ← @scoreboard/core — DDD domain + application layer
 │   └── shared/                 ← shared code (future)
@@ -81,13 +84,29 @@ apps/frontend/src/
 
 Imports from `@scoreboard/core` use the package alias (e.g. `import { Match } from '@scoreboard/core/domain/match.aggregate'`).
 
+## App: `apps/backend` (`@scoreboard/backend`)
+
+NestJS 11 REST API. Imports `@scoreboard/core` via workspace dependency for access to the domain and application layer.
+
+```
+apps/backend/src/
+├── app.module.ts          ← Root NestJS module
+├── app.controller.ts      ← Root controller
+├── app.service.ts         ← Root service
+└── main.ts                ← Bootstrap entry point
+```
+
+- `paths` in `tsconfig.json` resolve `@scoreboard/core/*` → `../../packages/core/src/*` for both type-checking and webpack build.
+- `moduleNameMapper` in Jest config mirrors the same resolution for tests.
+- Dockerfile at `apps/backend/Dockerfile` builds a minimal production image using `turbo prune`.
+
 ## CI/CD
 
 GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 
 - `ci.yml` — commitlint + check-types + test + build (triggers on PRs)
 - `release.yml` — CI + per-package release with path-based change detection (triggers on push to `main`)
-- Commits follow `type(scope): description` — scopes: `core`, `frontend`, `shared`, `ci`, `deps`, `release`
+- Commits follow `type(scope): description` — scopes: `core`, `frontend`, `backend`, `shared`, `ci`, `deps`, `release`
 
 ## Key Architectural Decisions
 
@@ -97,4 +116,5 @@ GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 4. **No parameter properties** in constructors — `erasableSyntaxOnly: true` in tsconfig. Use the Props pattern instead.
 5. **Factory methods** (`Entity.create()`, `Entity.restore()`) replace `new Entity(...)` calls from outside the class.
 6. **Tests live in `__tests__/`** folders at the same level as the file they test, inside `packages/core/src/`.
-7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
+7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`, `feat(backend):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
+8. **Backend uses `paths` for core resolution** — `@scoreboard/core/*` is mapped to `../../packages/core/src/*` in `apps/backend/tsconfig.json`. This allows webpack and ts-node to resolve TypeScript source files without a compiled `dist/`. Jest uses the equivalent `moduleNameMapper`.

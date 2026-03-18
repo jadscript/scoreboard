@@ -1,0 +1,17 @@
+{
+  "git": {
+    "tagName": "@scoreboard/backend@${version}",
+    "commitMessage": "chore(release): @scoreboard/backend@${version} [skip ci]",
+    "tagAnnotation": "@scoreboard/backend v${version}"
+  },
+  "github": {
+    "release": true,
+    "releaseName": "@scoreboard/backend v${version}"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "conventionalcommits",
+      "infile": "CHANGELOG.md"
+    }
+  }
+}

@@ -7,10 +7,12 @@ Real-time beach tennis scoreboard application built with React, TypeScript and D
 | | |
 |---|---|
 | **UI** | React 19, Tailwind CSS 4, TanStack Router |
+| **API** | NestJS 11 (REST) |
 | **Language** | TypeScript 5.9 (strict + `erasableSyntaxOnly`) |
-| **Build** | Vite 8 |
+| **Frontend build** | Vite 8 |
+| **Backend build** | NestJS CLI (webpack) |
 | **Database** | RxDB 16 + Dexie 4 (IndexedDB — persists across sessions) |
-| **Tests** | Vitest 4 |
+| **Tests** | Vitest 4 (frontend/core) · Jest 30 (backend) |
 | **Package manager** | pnpm workspaces |
 | **Monorepo** | Turborepo |
 | **CI/CD** | GitHub Actions + release-it + Conventional Commits |
@@ -31,7 +33,8 @@ pnpm lint         # lint (via turbo)
 ```
 scoreboard/
 ├── apps/
-│   └── frontend/              # Vite app (React + UI)
+│   ├── frontend/              # Vite app (React + UI) (@scoreboard/frontend)
+│   └── backend/               # NestJS API (@scoreboard/backend)
 ├── packages/
 │   ├── core/                  # @scoreboard/core — DDD domain + application layer
 │   └── shared/                # shared code across apps (future)
@@ -81,6 +84,24 @@ packages/core/src/
         ├── match-repository.interface.ts  # IMatchRepository (port)
         └── player-repository.interface.ts # IPlayerRepository (port)
 ```
+
+### `apps/backend` (`@scoreboard/backend`)
+
+NestJS 11 REST API. Consumes `@scoreboard/core` via workspace dependency — path aliases in `tsconfig.json` resolve the TypeScript source directly without a compiled `dist/`.
+
+```
+apps/backend/src/
+├── config/
+│   ├── app.config.ts          # Namespace "app" — port, NODE_ENV, CORS
+│   ├── database.config.ts     # Namespace "database" — DATABASE_URL
+│   └── validation.schema.ts   # Joi schema — validates envs at startup
+├── app.module.ts              # Root NestJS module (imports ConfigModule globally)
+├── app.controller.ts          # Root controller
+├── app.service.ts             # Root service
+└── main.ts                    # Bootstrap — CORS + port via ConfigService
+```
+
+Docker image: `apps/backend/Dockerfile` — multi-stage build via `turbo prune @scoreboard/backend`.
 
 ### `apps/frontend`
 
@@ -221,7 +242,7 @@ This repository follows [Conventional Commits](https://www.conventionalcommits.o
 type(scope): description
 ```
 
-**Valid scopes:** `core`, `frontend`, `shared`, `ci`, `deps`, `release`
+**Valid scopes:** `core`, `frontend`, `backend`, `shared`, `ci`, `deps`, `release`
 
 | Type | Example | Version bump |
 |---|---|---|
@@ -237,7 +258,8 @@ Each package has independent tags and GitHub Releases:
 | Package | Tag example | Config file |
 |---|---|---|
 | `@scoreboard/core` | `@scoreboard/core@1.2.3` | `packages/core/.release-it.json` |
-| `scoreboard` (frontend) | `scoreboard@2.0.0` | `apps/frontend/.release-it.json` |
+| `@scoreboard/frontend` (frontend) | `@scoreboard/frontend@2.0.0` | `apps/frontend/.release-it.json` |
+| `@scoreboard/backend` | `@scoreboard/backend@1.0.0` | `apps/backend/.release-it.json` |
 
 A release is only triggered when there are commits since the last tag that touch the package directory. Each package's `CHANGELOG.md` is generated automatically.
 
@@ -249,4 +271,42 @@ cd packages/core && pnpm run release
 
 # frontend only
 cd apps/frontend && pnpm run release
+
+# backend only
+cd apps/backend && pnpm run release
+```
+
+## Backend Configuration
+
+The backend uses `@nestjs/config` with Joi schema validation. The app **fails fast at startup** if a required env var is missing or invalid.
+
+### Environment variables
+
+| Variable | Default | Required | Description |
+|---|---|---|---|
+| `NODE_ENV` | `development` | no | `development` \| `production` \| `test` |
+| `PORT` | `3000` | no | HTTP port |
+| `CORS_ENABLED` | `true` | no | Enable/disable CORS globally |
+| `CORS_ORIGINS` | `http://localhost:5173` | no | Comma-separated list of allowed origins |
+| `DATABASE_URL` | — | **yes** | PostgreSQL connection string |
+
+### Env file conventions
+
+| File | Committed | Purpose |
+|---|---|---|
+| `.env.example` | yes | Template — reference for all variables |
+| `.env.development` | yes | Safe development defaults |
+| `.env.development.local` | no (gitignored) | Local overrides |
+| `.env.production` | no | Injected by CI/CD or container orchestration |
+
+### Local setup
+
+```bash
+# Option A — use committed development defaults as-is
+cd apps/backend
+pnpm dev
+
+# Option B — override specific values locally
+cp apps/backend/.env.development apps/backend/.env.development.local
+# edit .env.development.local with your local values
 ```
