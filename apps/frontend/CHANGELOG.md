@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.8.0...@scoreboard/frontend@0.9.0) (2026-03-27)
+
+### Features
+
+* :sparkles: add team name management to useScoreboard hook and update ScoreboardPage for dynamic team name input ([fa9cd12](https://github.com/jadscript/scoreboard/commit/fa9cd12a5f83a98691a95557c5958fc8703e04a1))
+
 ## [0.8.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.7.0...@scoreboard/frontend@0.8.0) (2026-03-27)
 
 ### Features
