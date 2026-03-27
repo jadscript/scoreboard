@@ -140,6 +140,43 @@ function reducer(state: State, action: Action): State {
 
 const POINT_LABELS = ['0', '15', '30', '40'] as const
 
+function teamLabel(team: Team): string {
+  return team === 'team1' ? 'Time 1' : 'Time 2'
+}
+
+function describeLastScoringAction(prior: Snapshot, current: Snapshot): string {
+  if (current.setHistory.length > prior.setHistory.length) {
+    const finalGames = current.setHistory[current.setHistory.length - 1]
+    const winner: Team = finalGames.team1 > finalGames.team2 ? 'team1' : 'team2'
+    const setNum = current.setHistory.length
+    return `Fim do set ${setNum} (${finalGames.team1}–${finalGames.team2}), vitória do ${teamLabel(winner)}`
+  }
+
+  if (current.games.team1 !== prior.games.team1 || current.games.team2 !== prior.games.team2) {
+    if (current.isTiebreak && !prior.isTiebreak) {
+      return 'Game que equalizou em 6–6 e início do tie-break'
+    }
+    const t1Delta = current.games.team1 - prior.games.team1
+    const winner: Team = t1Delta > 0 ? 'team1' : 'team2'
+    return `Game para o ${teamLabel(winner)} (games ${current.games.team1}–${current.games.team2})`
+  }
+
+  if (current.points.team1 !== prior.points.team1) {
+    if (current.isTiebreak) {
+      return `Ponto para o ${teamLabel('team1')} no tie-break (${current.points.team1}–${current.points.team2})`
+    }
+    return `Ponto para o ${teamLabel('team1')}`
+  }
+  if (current.points.team2 !== prior.points.team2) {
+    if (current.isTiebreak) {
+      return `Ponto para o ${teamLabel('team2')} no tie-break (${current.points.team1}–${current.points.team2})`
+    }
+    return `Ponto para o ${teamLabel('team2')}`
+  }
+
+  return 'Última alteração no placar'
+}
+
 export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
   const onScoreRef = useRef(options?.onScore)
@@ -299,6 +336,22 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
     return Math.floor((totalGames + 1) / 2) % 2 === 1
   }, [state.games])
 
+  const canUndo = state.history.length > 0
+  const canReset = state.history.length > 0
+
+  const undoActionDescription = useMemo((): string | null => {
+    if (state.history.length === 0) return null
+    const prior = state.history[state.history.length - 1]
+    const current: Snapshot = {
+      points: state.points,
+      games: state.games,
+      sets: state.sets,
+      isTiebreak: state.isTiebreak,
+      setHistory: state.setHistory,
+    }
+    return describeLastScoringAction(prior, current)
+  }, [state])
+
   return {
     points: state.points,
     games: state.games,
@@ -313,5 +366,8 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
     handleScore,
     handleUndo,
     handleReset,
+    canUndo,
+    canReset,
+    undoActionDescription,
   }
 }

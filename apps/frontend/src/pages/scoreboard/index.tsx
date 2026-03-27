@@ -1,6 +1,7 @@
 import { Maximize, Minimize, RotateCcw, Undo2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { useScoreboard } from "../hooks/useScoreboard";
+import { useScoreboard } from "../../hooks/useScoreboard";
+import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
 
 const Divider = () => (
   <div className="w-[2px] h-[45px] bg-gray-300 rounded-full" />
@@ -8,6 +9,8 @@ const Divider = () => (
 
 export function ScoreboardPage() {
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [undoConfirmOpen, setUndoConfirmOpen] = useState(false)
   const [scoredTeam, setScoredTeam] = useState<"team1" | "team2" | null>(null)
   const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -31,6 +34,9 @@ export function ScoreboardPage() {
     handleScore,
     handleUndo,
     handleReset,
+    canUndo,
+    canReset,
+    undoActionDescription,
     team1Score,
     team2Score,
     games,
@@ -100,16 +106,20 @@ export function ScoreboardPage() {
               </button>
 
               <button
-                onClick={handleUndo}
-                className="transition-colors cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-3"
+                type="button"
+              disabled={!canUndo}
+                onClick={() => setUndoConfirmOpen(true)}
+                className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-3"
                 title="Desfazer última ação"
               >
                 <Undo2 size={16} />
               </button>
 
               <button
-                onClick={handleReset}
-                className="transition-colors cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-full p-3"
+                type="button"
+                disabled={!canReset}
+                onClick={() => setResetConfirmOpen(true)}
+                className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-full p-3"
                 title="Resetar partida"
               >
                 <RotateCcw size={16} />
@@ -139,6 +149,34 @@ export function ScoreboardPage() {
           </h1>
         </div>
       </div>
+
+      {resetConfirmOpen && (
+        <ScoreboardConfirmModal
+          title="Resetar partida"
+          message="Zerar placar, games e sets? O histórico de desfazer também será limpo."
+          confirmLabel="Resetar"
+          confirmTone="danger"
+          onCancel={() => setResetConfirmOpen(false)}
+          onConfirm={() => {
+            handleReset();
+            setResetConfirmOpen(false);
+          }}
+        />
+      )}
+
+      {undoConfirmOpen && undoActionDescription !== null && (
+        <ScoreboardConfirmModal
+          title="Desfazer última ação"
+          message={`Será desfeito: ${undoActionDescription}.`}
+          confirmLabel="Desfazer"
+          confirmTone="warning"
+          onCancel={() => setUndoConfirmOpen(false)}
+          onConfirm={() => {
+            handleUndo();
+            setUndoConfirmOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
