@@ -1,25 +1,27 @@
-import {
-  ArrowDownUp,
-  Maximize,
-  Minimize,
-  RotateCcw,
-  Undo2,
-} from "lucide-react";
-import { useRef, useState } from "react";
-import tennisBallIcon from "../../assets/icons/tennis-ball.svg?url";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { loadGameSetup } from "../game/gameSetupStorage";
+import { formatTeamDisplayName } from "../game/playerSelection";
 import { useScoreboard } from "../../hooks/useScoreboard";
+import { appendSavedMatch } from "./matchHistoryStorage";
 import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
-
-const Divider = ({ className }: { className?: string }) => (
-  <div className={`w-[2px] h-[45px] bg-gray-300 rounded-full ${className}`} />
-);
+import { ScoreboardInfoGroup } from "./_components/ScoreboardInfoGroup";
+import { ScoreboardScorePanel } from "./_components/ScoreboardScorePanel";
+import { ScoreboardToolbar } from "./_components/ScoreboardToolbar";
 
 export function ScoreboardPage() {
+  const navigate = useNavigate();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [settingsConfirmOpen, setSettingsConfirmOpen] = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [undoConfirmOpen, setUndoConfirmOpen] = useState(false);
   const [scoredTeam, setScoredTeam] = useState<"team1" | "team2" | null>(null);
+  const [matchHistorySaveError, setMatchHistorySaveError] = useState(false);
   const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearMatchHistorySaveError = useCallback(() => {
+    setMatchHistorySaveError(false);
+  }, []);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -47,174 +49,148 @@ export function ScoreboardPage() {
     team1Score,
     team2Score,
     games,
+    sets,
+    gamesToWinSet,
+    setsToWinMatch,
     setHistory,
+    pointEvents,
     serving,
     courtSwitched,
     team1Name,
     team2Name,
     setTeamName,
-  } = useScoreboard({ onScore: triggerFlash });
+    handleInvertTeams,
+    matchFinished,
+  } = useScoreboard({ onScore: triggerFlash, onAfterUndo: clearMatchHistorySaveError });
+
+  const handleInvertTeamsAndClearHistorySave = useCallback(() => {
+    handleInvertTeams();
+    clearMatchHistorySaveError();
+  }, [handleInvertTeams, clearMatchHistorySaveError]);
+
+  const handleResetAndClearHistorySave = useCallback(() => {
+    handleReset();
+    clearMatchHistorySaveError();
+  }, [handleReset, clearMatchHistorySaveError]);
+
+  const handleSaveMatchToHistory = useCallback(() => {
+    const saved = appendSavedMatch({
+      team1Name,
+      team2Name,
+      gamesToWinSet,
+      setsToWinMatch,
+      finalSets: { team1: sets.team1, team2: sets.team2 },
+      setGameScores: setHistory.map((s) => ({ team1: s.team1, team2: s.team2 })),
+      pointEvents,
+    });
+    if (saved) {
+      setMatchHistorySaveError(false);
+      handleReset();
+    } else {
+      setMatchHistorySaveError(true);
+    }
+  }, [
+    handleReset,
+    team1Name,
+    team2Name,
+    gamesToWinSet,
+    setsToWinMatch,
+    sets.team1,
+    sets.team2,
+    setHistory,
+    pointEvents,
+  ]);
+
+  const setupTeams = useMemo(() => loadGameSetup().teams, []);
+
+  const handleTeamName = useCallback(
+    (team: "team1" | "team2", value: string) => {
+      setTeamName(team, value);
+      const other = team === "team1" ? "team2" : "team1";
+      const otherName = team === "team1" ? team2Name : team1Name;
+      if (
+        value.trim().length > 0 &&
+        value.trim().toLowerCase() === otherName.trim().toLowerCase()
+      ) {
+        const alt = setupTeams.find(
+          (t) =>
+            formatTeamDisplayName(t.playerNames).toLowerCase() !==
+            value.trim().toLowerCase(),
+        );
+        if (alt) {
+          setTeamName(other, formatTeamDisplayName(alt.playerNames));
+        }
+      }
+    },
+    [setTeamName, team1Name, team2Name, setupTeams],
+  );
 
   const handleScoreWithFlash = (team: "team1" | "team2") => {
     handleScore(team);
     triggerFlash(team);
   };
 
-  const invertTeams = () => {
-    const temp = team1Name;
-    setTeamName("team1", team2Name);
-    setTeamName("team2", temp);
-  };
-
   return (
     <div className="flex flex-col items-center justify-between p-4 w-full h-screen">
       <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-full border-8 border-black">
-        <div className="absolute top-0 left-0 right-0 flex justify-center">
+        <div className="absolute top-0 left-0 right-0 flex justify-center max-w-lg mx-auto">
           <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
-            {/* Info group: team labels + set scores */}
-            <div className="flex gap-4 flex-1">
-              <div className="flex flex-col gap-1 flex-1">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-3 h-3 shrink-0 bg-green-600 rounded-full" />
-                  <input
-                    type="text"
-                    value={team1Name}
-                    onChange={(e) => setTeamName("team1", e.target.value)}
-                    className="flex font-bold text-sm border-b border-transparent hover:border-gray-300 focus:border-black outline-none"
-                    style={{ width: `${team1Name.length}ch` }}
-                    aria-label="Nome do time 1"
-                    maxLength={40}
-                  />
-                  <img
-                    src={tennisBallIcon}
-                    alt=""
-                    width={10}
-                    height={10}
-                    className={`w-4 h-4 shrink-0 object-contain transition-opacity duration-200 ${serving === "team1" ? "opacity-100" : "opacity-0"}`}
-                    aria-hidden
-                  />
-                </div>
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-3 h-3 shrink-0 bg-blue-600 rounded-full" />
-                  <input
-                    type="text"
-                    value={team2Name}
-                    onChange={(e) => setTeamName("team2", e.target.value)}
-                    className="flex font-bold text-sm border-b border-transparent hover:border-gray-300 focus:border-black outline-none"
-                    style={{ width: `${team2Name.length}ch` }}
-                    aria-label="Nome do time 2"
-                    maxLength={40}
-                  />
-                  <img
-                    src={tennisBallIcon}
-                    alt=""
-                    width={10}
-                    height={10}
-                    className={`w-4 h-4 shrink-0 object-contain transition-opacity duration-200 ${serving === "team2" ? "opacity-100" : "opacity-0"}`}
-                    aria-hidden
-                  />
-                </div>
-              </div>
+            <ScoreboardInfoGroup
+              team1Name={team1Name}
+              team2Name={team2Name}
+              setTeamName={handleTeamName}
+              serving={serving}
+              games={games}
+              setHistory={setHistory}
+              setsToWinMatch={setsToWinMatch}
+              setupTeams={setupTeams}
+            />
 
-              <Divider />
-
-              <div className="flex gap-4">
-                {Array.from({ length: 3 }, (_, i) => {
-                  const completed = setHistory[i];
-                  const isCurrent = i === setHistory.length;
-                  const t1 = completed
-                    ? completed.team1
-                    : isCurrent
-                      ? games.team1
-                      : 0;
-                  const t2 = completed
-                    ? completed.team2
-                    : isCurrent
-                      ? games.team2
-                      : 0;
-                  const team1Won = completed
-                    ? completed.team1 > completed.team2
-                    : null;
-                  return (
-                    <div key={i} className="flex flex-col gap-1 items-center">
-                      <span
-                        className={`font-bold text-sm w-3 text-center ${team1Won === false ? "opacity-40" : ""}`}
-                      >
-                        {t1}
-                      </span>
-                      <span
-                        className={`font-bold text-sm w-3 text-center ${team1Won === true ? "opacity-40" : ""}`}
-                      >
-                        {t2}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Actions group: fullscreen, undo, reset */}
-            <div className="flex items-center gap-2 w-full justify-center border-t-2 border-gray-300 pt-2">
-              <button
-                onClick={invertTeams}
-                className="transition-colors cursor-pointer bg-linear-to-r from-green-500 via-green-400 to-blue-500 hover:from-blue-600 hover:to-green-600 text-white rounded-full p-3"
-                title="Inverter times"
-              >
-                {<ArrowDownUp size={16} />}
-              </button>
-
-              <button
-                onClick={toggleFullscreen}
-                className="transition-colors cursor-pointer bg-gray-500 hover:bg-gray-600 text-white rounded-full p-3"
-                title={isFullscreen ? "Sair do fullscreen" : "Fullscreen"}
-              >
-                {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-              </button>
-
-              <button
-                type="button"
-                disabled={!canUndo}
-                onClick={() => setUndoConfirmOpen(true)}
-                className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-3"
-                title="Desfazer última ação"
-              >
-                <Undo2 size={16} />
-              </button>
-
-              <button
-                type="button"
-                disabled={!canReset}
-                onClick={() => setResetConfirmOpen(true)}
-                className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-full p-3"
-                title="Resetar partida"
-              >
-                <RotateCcw size={16} />
-              </button>
-            </div>
+            <ScoreboardToolbar
+              isFullscreen={isFullscreen}
+              canUndo={canUndo}
+              canReset={canReset}
+              matchFinished={matchFinished}
+              saveToHistoryError={matchHistorySaveError}
+              onInvertTeams={handleInvertTeamsAndClearHistorySave}
+              onToggleFullscreen={toggleFullscreen}
+              onRequestUndo={() => setUndoConfirmOpen(true)}
+              onRequestReset={() => setResetConfirmOpen(true)}
+              onRequestSettings={() => setSettingsConfirmOpen(true)}
+              onSaveMatchToHistory={handleSaveMatchToHistory}
+            />
           </div>
         </div>
 
-        <div
-          className={`flex items-center justify-center h-full cursor-pointer border-black ${!courtSwitched ? "order-1 border-r-4" : "order-2 border-l-4"} ${scoredTeam === "team1" ? "score-flash-green" : "text-green-700 hover:bg-green-600 hover:text-white transition-colors"}`}
-          onClick={() => handleScoreWithFlash("team1")}
-        >
-          <h1
-            className={`font-bold w-full text-center text-[25vw] leading-none score-font ${team1Score === "40" ? "animate-transform" : ""}`}
-          >
-            {team1Score}
-          </h1>
-        </div>
-        <div
-          className={`flex items-center justify-center h-full cursor-pointer border-black ${courtSwitched ? "order-1 border-r-4" : "order-2 border-l-4"} ${scoredTeam === "team2" ? "score-flash-blue" : "text-blue-700 hover:bg-blue-600 hover:text-white transition-colors"}`}
-          onClick={() => handleScoreWithFlash("team2")}
-        >
-          <h1
-            className={`font-bold w-full text-center text-[25vw] leading-none score-font ${team2Score === "40" ? "animate-transform" : ""}`}
-          >
-            {team2Score}
-          </h1>
-        </div>
+        <ScoreboardScorePanel
+          team="team1"
+          score={team1Score}
+          courtSwitched={courtSwitched}
+          scoredTeam={scoredTeam}
+          onScore={() => handleScoreWithFlash("team1")}
+        />
+        <ScoreboardScorePanel
+          team="team2"
+          score={team2Score}
+          courtSwitched={courtSwitched}
+          scoredTeam={scoredTeam}
+          onScore={() => handleScoreWithFlash("team2")}
+        />
       </div>
+
+      {settingsConfirmOpen && (
+        <ScoreboardConfirmModal
+          title="Ir para configuração"
+          message="Ao sair do placar para a configuração, o jogo atual será reiniciado. Deseja continuar?"
+          confirmLabel="Ir para configuração"
+          confirmTone="warning"
+          onCancel={() => setSettingsConfirmOpen(false)}
+          onConfirm={() => {
+            setSettingsConfirmOpen(false);
+            navigate({ to: "/" });
+          }}
+        />
+      )}
 
       {resetConfirmOpen && (
         <ScoreboardConfirmModal
@@ -224,7 +200,7 @@ export function ScoreboardPage() {
           confirmTone="danger"
           onCancel={() => setResetConfirmOpen(false)}
           onConfirm={() => {
-            handleReset();
+            handleResetAndClearHistorySave();
             setResetConfirmOpen(false);
           }}
         />

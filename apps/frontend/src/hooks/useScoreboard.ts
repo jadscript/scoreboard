@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
+import { buildPointEventsFromHistory } from '../pages/scoreboard/matchHistoryStorage'
+import { loadGameSetup } from '../pages/game/gameSetupStorage'
 
 const SCORE_KEY = 's'
 const TEAM1_KEY = '1'
@@ -24,12 +26,21 @@ interface State extends Snapshot {
   history: Snapshot[]
   team1Name: string
   team2Name: string
+  /** Games no set para vencer (2 a 6). */
+  gamesToWinSet: 2 | 3 | 4 | 5 | 6
+  /** Quantos sets um time precisa vencer para fechar a partida. */
+  setsToWinMatch: number
+  matchFinished: boolean
 }
 
 type Action =
   | { type: 'SCORE'; team: Team }
   | { type: 'UNDO' }
-  | { type: 'RESET' }
+  | {
+      type: 'RESET'
+      gamesToWinSet: 2 | 3 | 4 | 5 | 6
+      setsToWinMatch: number
+    }
   | { type: 'SET_TEAM_NAME'; team: Team; name: string }
 
 const ZERO: Score = { team1: 0, team2: 0 }
@@ -47,10 +58,13 @@ const INITIAL_STATE: State = {
   history: [],
   team1Name: 'Time 1',
   team2Name: 'Time 2',
+  gamesToWinSet: 6,
+  setsToWinMatch: 2,
+  matchFinished: false,
 }
 
 const STORAGE_KEY = 'scoreboard/match-state'
-const PERSIST_VERSION = 1
+const PERSIST_VERSION = 2
 const TEAM_NAME_MAX_LEN = 40
 const PERSIST_DEBOUNCE_MS = 250
 
@@ -82,7 +96,11 @@ function isSnapshotValue(x: unknown): x is Snapshot {
   )
 }
 
-function isPersistedStateBody(x: unknown): x is State {
+function isPersistedStateBody(x: unknown): x is Omit<State, 'gamesToWinSet' | 'setsToWinMatch' | 'matchFinished'> & {
+  gamesToWinSet?: unknown
+  setsToWinMatch?: unknown
+  matchFinished?: unknown
+} {
   if (typeof x !== 'object' || x === null) return false
   const o = x as Record<string, unknown>
   if (!isScore(o.points) || !isScore(o.games) || !isScore(o.sets)) return false
@@ -93,13 +111,29 @@ function isPersistedStateBody(x: unknown): x is State {
   return true
 }
 
+function normalizeGamesToWinSet(v: unknown): 2 | 3 | 4 | 5 | 6 {
+  if (v === 2 || v === 3 || v === 4 || v === 5 || v === 6) return v
+  return 6
+}
+
+function normalizeSetsToWinMatch(v: unknown): number {
+  if (typeof v === 'number' && Number.isFinite(v) && v >= 1 && v <= 3 && Math.floor(v) === v) {
+    return v
+  }
+  return 2
+}
+
+function normalizeMatchFinished(v: unknown): boolean {
+  return v === true
+}
+
 function parseStoredState(raw: string | null): State | null {
   if (raw === null || raw === '') return null
   try {
     const data = JSON.parse(raw) as unknown
     if (typeof data !== 'object' || data === null) return null
     const o = data as Record<string, unknown>
-    if (o.v !== PERSIST_VERSION) return null
+    if (o.v !== 1 && o.v !== PERSIST_VERSION) return null
     const body = { ...o }
     delete body.v
     if (!isPersistedStateBody(body)) return null
@@ -112,6 +146,9 @@ function parseStoredState(raw: string | null): State | null {
       history: body.history,
       team1Name: clampTeamName(body.team1Name, 'Time 1'),
       team2Name: clampTeamName(body.team2Name, 'Time 2'),
+      gamesToWinSet: normalizeGamesToWinSet(body.gamesToWinSet),
+      setsToWinMatch: normalizeSetsToWinMatch(body.setsToWinMatch),
+      matchFinished: normalizeMatchFinished(body.matchFinished),
     }
   } catch {
     return null
@@ -129,14 +166,28 @@ function serializeState(state: State): string {
     history: state.history,
     team1Name: state.team1Name,
     team2Name: state.team2Name,
+    gamesToWinSet: state.gamesToWinSet,
+    setsToWinMatch: state.setsToWinMatch,
+    matchFinished: state.matchFinished,
   })
+}
+
+/** Aplica games/set da configuração salva (página de jogo) sobre o estado do placar. */
+function applySavedGameSetup(state: State): State {
+  const setup = loadGameSetup()
+  return {
+    ...state,
+    gamesToWinSet: setup.gamesPerSet,
+    setsToWinMatch: setup.matchSets,
+  }
 }
 
 function readInitialState(): State {
   if (typeof globalThis === 'undefined' || typeof globalThis.localStorage === 'undefined') {
-    return INITIAL_STATE
+    return applySavedGameSetup(INITIAL_STATE)
   }
-  return parseStoredState(globalThis.localStorage.getItem(STORAGE_KEY)) ?? INITIAL_STATE
+  const parsed = parseStoredState(globalThis.localStorage.getItem(STORAGE_KEY))
+  return applySavedGameSetup(parsed ?? INITIAL_STATE)
 }
 
 function isEditableKeyTarget(target: EventTarget | null): boolean {
@@ -172,16 +223,14 @@ function gameWinner(points: Score, isTiebreak: boolean): Team | null {
   return null
 }
 
-function setWinner(games: Score): Team | null {
+function setWinner(games: Score, gamesToWin: number): Team | null {
   const { team1, team2 } = games
 
-  // First to 6, win by 2 (covers 6-0 through 6-4 and 7-5)
-  if (team1 >= 6 && team1 - team2 >= 2) return 'team1'
-  if (team2 >= 6 && team2 - team1 >= 2) return 'team2'
+  if (team1 >= gamesToWin && team1 - team2 >= 2) return 'team1'
+  if (team2 >= gamesToWin && team2 - team1 >= 2) return 'team2'
 
-  // After tie-break: 7-6
-  if (team1 === 7 && team2 === 6) return 'team1'
-  if (team2 === 7 && team1 === 6) return 'team2'
+  if (team1 === gamesToWin + 1 && team2 === gamesToWin) return 'team1'
+  if (team2 === gamesToWin + 1 && team1 === gamesToWin) return 'team2'
 
   return null
 }
@@ -193,11 +242,16 @@ function reducer(state: State, action: Action): State {
         ...INITIAL_STATE,
         team1Name: state.team1Name,
         team2Name: state.team2Name,
+        gamesToWinSet: action.gamesToWinSet,
+        setsToWinMatch: normalizeSetsToWinMatch(action.setsToWinMatch),
       }
 
     case 'SET_TEAM_NAME': {
       const key = action.team === 'team1' ? 'team1Name' : 'team2Name'
-      return { ...state, [key]: action.name.slice(0, TEAM_NAME_MAX_LEN) }
+      return {
+        ...state,
+        [key]: action.name.slice(0, TEAM_NAME_MAX_LEN),
+      }
     }
 
     case 'UNDO': {
@@ -208,10 +262,15 @@ function reducer(state: State, action: Action): State {
         history: state.history.slice(0, -1),
         team1Name: state.team1Name,
         team2Name: state.team2Name,
+        gamesToWinSet: state.gamesToWinSet,
+        setsToWinMatch: state.setsToWinMatch,
+        matchFinished: false,
       }
     }
 
     case 'SCORE': {
+      if (state.matchFinished) return state
+
       const snapshot: Snapshot = {
         points: state.points,
         games: state.games,
@@ -233,23 +292,29 @@ function reducer(state: State, action: Action): State {
 
       // Game won — add 1 to the winner's game count
       const newGames: Score = { ...state.games, [winner]: state.games[winner] + 1 }
-      const wonSet = setWinner(newGames)
+      const gtw = state.gamesToWinSet
+      const wonSet = setWinner(newGames, gtw)
 
       if (wonSet) {
+        const newSets: Score = { ...state.sets, [wonSet]: state.sets[wonSet] + 1 }
+        const matchFinished =
+          newSets.team1 >= state.setsToWinMatch || newSets.team2 >= state.setsToWinMatch
         return {
           points: { ...ZERO },
           games: { ...ZERO },
-          sets: { ...state.sets, [wonSet]: state.sets[wonSet] + 1 },
+          sets: newSets,
           isTiebreak: false,
           setHistory: [...state.setHistory, newGames],
           history: [...state.history, snapshot],
           team1Name: state.team1Name,
           team2Name: state.team2Name,
+          gamesToWinSet: state.gamesToWinSet,
+          setsToWinMatch: state.setsToWinMatch,
+          matchFinished,
         }
       }
 
-      // At 6-6 the next game is a tie-break
-      const isTiebreak = newGames.team1 === 6 && newGames.team2 === 6
+      const isTiebreak = newGames.team1 === gtw && newGames.team2 === gtw
 
       return {
         points: { ...ZERO },
@@ -260,6 +325,9 @@ function reducer(state: State, action: Action): State {
         history: [...state.history, snapshot],
         team1Name: state.team1Name,
         team2Name: state.team2Name,
+        gamesToWinSet: state.gamesToWinSet,
+        setsToWinMatch: state.setsToWinMatch,
+        matchFinished: state.matchFinished,
       }
     }
   }
@@ -311,9 +379,13 @@ function describeLastScoringAction(
   return 'Última alteração no placar'
 }
 
-export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
+export function useScoreboard(options?: {
+  onScore?: (team: Team) => void
+  onAfterUndo?: () => void
+}) {
   const [state, dispatch] = useReducer(reducer, undefined, readInitialState)
   const onScoreRef = useRef(options?.onScore)
+  const onAfterUndoRef = useRef(options?.onAfterUndo)
   const stateForPersistRef = useRef(state)
 
   useEffect(() => {
@@ -322,6 +394,7 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
 
   useEffect(() => {
     onScoreRef.current = options?.onScore
+    onAfterUndoRef.current = options?.onAfterUndo
   })
 
   useEffect(() => {
@@ -355,10 +428,16 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
 
   const handleUndo = useCallback(() => {
     dispatch({ type: 'UNDO' })
+    onAfterUndoRef.current?.()
   }, [])
 
   const handleReset = useCallback(() => {
-    dispatch({ type: 'RESET' })
+    const setup = loadGameSetup()
+    dispatch({
+      type: 'RESET',
+      gamesToWinSet: setup.gamesPerSet,
+      setsToWinMatch: setup.matchSets,
+    })
   }, [])
 
   const setTeamName = useCallback((team: Team, name: string) => {
@@ -511,6 +590,17 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
   const canUndo = state.history.length > 0
   const canReset = state.history.length > 0
 
+  const pointEvents = useMemo(() => {
+    const current: Snapshot = {
+      points: state.points,
+      games: state.games,
+      sets: state.sets,
+      isTiebreak: state.isTiebreak,
+      setHistory: state.setHistory,
+    }
+    return buildPointEventsFromHistory(state.history, current)
+  }, [state])
+
   const undoActionDescription = useMemo((): string | null => {
     if (state.history.length === 0) return null
     const prior = state.history[state.history.length - 1]
@@ -527,17 +617,37 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
     })
   }, [state])
 
+  const invertTeams = useCallback(() => {
+    const temp = state.team1Name;
+    dispatch({ type: 'SET_TEAM_NAME', team: 'team1', name: state.team2Name });
+    dispatch({ type: 'SET_TEAM_NAME', team: 'team2', name: temp });
+  }, [state.team1Name, state.team2Name]);
+
+  const handleInvertTeams = useCallback(() => {
+    const setup = loadGameSetup()
+    dispatch({
+      type: 'RESET',
+      gamesToWinSet: setup.gamesPerSet,
+      setsToWinMatch: setup.matchSets,
+    })
+    invertTeams()
+  }, [invertTeams])
+
   return {
     points: state.points,
     games: state.games,
     sets: state.sets,
+    gamesToWinSet: state.gamesToWinSet,
+    setsToWinMatch: state.setsToWinMatch,
     setHistory: state.setHistory,
+    pointEvents,
     isTiebreak: state.isTiebreak,
     serving,
     courtSwitched,
     team1Score: pointDisplay.team1,
     team2Score: pointDisplay.team2,
     isDeuce,
+    matchFinished: state.matchFinished,
     handleScore,
     handleUndo,
     handleReset,
@@ -547,7 +657,31 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
     team1Name: state.team1Name,
     team2Name: state.team2Name,
     setTeamName,
+    handleInvertTeams,
   }
 }
 
 export type { Team as ScoreboardTeam }
+
+export function bootstrapScoreboardMatch(input: {
+  team1Name: string
+  team2Name: string
+  gamesToWinSet: 2 | 3 | 4 | 5 | 6
+  setsToWinMatch: number
+}): void {
+  if (typeof globalThis.localStorage === 'undefined') return
+  const state: State = {
+    ...INITIAL_SNAPSHOT,
+    history: [],
+    team1Name: clampTeamName(input.team1Name, 'Time 1'),
+    team2Name: clampTeamName(input.team2Name, 'Time 2'),
+    gamesToWinSet: input.gamesToWinSet,
+    setsToWinMatch: normalizeSetsToWinMatch(input.setsToWinMatch),
+    matchFinished: false,
+  }
+  try {
+    globalThis.localStorage.setItem(STORAGE_KEY, serializeState(state))
+  } catch {
+    /* quota, private mode */
+  }
+}

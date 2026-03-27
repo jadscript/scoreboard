@@ -2,21 +2,29 @@ import { createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/re
 import { LoginPage } from './pages/Login'
 import { ScoreboardPage } from './pages/scoreboard'
 import { PlayersPage } from './pages/players'
+import { GamePage } from './pages/game'
+import { RankingPage } from './pages/ranking'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
 })
 
-const loginRoute = createRoute({
+const gameRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: ScoreboardPage,
+  component: GamePage,
+})
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: LoginPage,
 })
 
 const scoreboardRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/login',
-  component: LoginPage,
+  path: '/scoreboard',
+  component: ScoreboardPage,
 })
 
 const playersRoute = createRoute({
@@ -25,7 +33,19 @@ const playersRoute = createRoute({
   component: PlayersPage,
 })
 
-const routeTree = rootRoute.addChildren([loginRoute, scoreboardRoute, playersRoute])
+const rankingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ranking',
+  component: RankingPage,
+})
+
+const routeTree = rootRoute.addChildren([
+  gameRoute,
+  loginRoute,
+  scoreboardRoute,
+  playersRoute,
+  rankingRoute,
+])
 
 export const router = createRouter({ routeTree })
 
