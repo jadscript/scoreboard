@@ -1,5 +1,12 @@
-import { Maximize, Minimize, RotateCcw, Undo2 } from "lucide-react";
+import {
+  ArrowDownUp,
+  Maximize,
+  Minimize,
+  RotateCcw,
+  Undo2,
+} from "lucide-react";
 import { useRef, useState } from "react";
+import tennisBallIcon from "../../assets/icons/tennis-ball.svg?url";
 import { useScoreboard } from "../../hooks/useScoreboard";
 import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
 
@@ -53,6 +60,12 @@ export function ScoreboardPage() {
     triggerFlash(team);
   };
 
+  const invertTeams = () => {
+    const temp = team1Name;
+    setTeamName("team1", team2Name);
+    setTeamName("team2", temp);
+  };
+
   return (
     <div className="flex flex-col items-center justify-between p-4 w-full h-screen">
       <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-full border-8 border-black">
@@ -72,8 +85,13 @@ export function ScoreboardPage() {
                     aria-label="Nome do time 1"
                     maxLength={40}
                   />
-                  <div
-                    className={`w-2.5 h-2.5 shrink-0 rounded-full bg-black transition-opacity duration-200 ${serving === "team1" ? "opacity-100" : "opacity-0"}`}
+                  <img
+                    src={tennisBallIcon}
+                    alt=""
+                    width={10}
+                    height={10}
+                    className={`w-4 h-4 shrink-0 object-contain transition-opacity duration-200 ${serving === "team1" ? "opacity-100" : "opacity-0"}`}
+                    aria-hidden
                   />
                 </div>
                 <div className="flex items-center gap-2 min-w-0">
@@ -87,8 +105,13 @@ export function ScoreboardPage() {
                     aria-label="Nome do time 2"
                     maxLength={40}
                   />
-                  <div
-                    className={`w-2.5 h-2.5 shrink-0 rounded-full bg-black transition-opacity duration-200 ${serving === "team2" ? "opacity-100" : "opacity-0"}`}
+                  <img
+                    src={tennisBallIcon}
+                    alt=""
+                    width={10}
+                    height={10}
+                    className={`w-4 h-4 shrink-0 object-contain transition-opacity duration-200 ${serving === "team2" ? "opacity-100" : "opacity-0"}`}
+                    aria-hidden
                   />
                 </div>
               </div>
@@ -132,6 +155,14 @@ export function ScoreboardPage() {
 
             {/* Actions group: fullscreen, undo, reset */}
             <div className="flex items-center gap-2 w-full justify-center border-t-2 border-gray-300 pt-2">
+              <button
+                onClick={invertTeams}
+                className="transition-colors cursor-pointer bg-linear-to-r from-green-500 via-green-400 to-blue-500 hover:from-blue-600 hover:to-green-600 text-white rounded-full p-3"
+                title="Inverter times"
+              >
+                {<ArrowDownUp size={16} />}
+              </button>
+
               <button
                 onClick={toggleFullscreen}
                 className="transition-colors cursor-pointer bg-gray-500 hover:bg-gray-600 text-white rounded-full p-3"

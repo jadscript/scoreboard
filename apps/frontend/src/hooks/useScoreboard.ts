@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 
-const SCORE_KEY = ' '
+const SCORE_KEY = 's'
 const TEAM1_KEY = '1'
 const TEAM2_KEY = '2'
 const DOUBLE_CLICK_THRESHOLD_MS = 300
@@ -137,6 +137,17 @@ function readInitialState(): State {
     return INITIAL_STATE
   }
   return parseStoredState(globalThis.localStorage.getItem(STORAGE_KEY)) ?? INITIAL_STATE
+}
+
+function isEditableKeyTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
+  return target.isContentEditable
+}
+
+function matchesScoreKey(e: KeyboardEvent): boolean {
+  return e.key.toLowerCase() === SCORE_KEY
 }
 
 function gameWinner(points: Score, isTiebreak: boolean): Team | null {
@@ -355,9 +366,9 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
   }, [])
 
   const lastKeyUpRef = useRef<number | null>(null)
-  const spaceHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scoreKeyHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const singleClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const spaceDidHoldRef = useRef(false)
+  const scoreKeyDidHoldRef = useRef(false)
 
   const teamHoldTimerRef = useRef<Partial<Record<Team, ReturnType<typeof setTimeout>>>>({})
   const teamDidHoldRef = useRef<Partial<Record<Team, boolean>>>({})
@@ -370,6 +381,7 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return
+      if (isEditableKeyTarget(e.target)) return
 
       const team = TEAM_KEY_MAP[e.key]
       if (team) {
@@ -381,16 +393,18 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
         return
       }
 
-      if (e.key !== SCORE_KEY) return
+      if (!matchesScoreKey(e)) return
 
-      spaceDidHoldRef.current = false
-      spaceHoldTimerRef.current = setTimeout(() => {
-        spaceDidHoldRef.current = true
+      scoreKeyDidHoldRef.current = false
+      scoreKeyHoldTimerRef.current = setTimeout(() => {
+        scoreKeyDidHoldRef.current = true
         handleUndo()
       }, HOLD_DURATION_MS)
     }
 
     const onKeyUp = (e: KeyboardEvent) => {
+      if (isEditableKeyTarget(e.target)) return
+
       const team = TEAM_KEY_MAP[e.key]
       if (team) {
         const timer = teamHoldTimerRef.current[team]
@@ -407,15 +421,15 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
         return
       }
 
-      if (e.key !== SCORE_KEY) return
+      if (!matchesScoreKey(e)) return
 
-      if (spaceHoldTimerRef.current) {
-        clearTimeout(spaceHoldTimerRef.current)
-        spaceHoldTimerRef.current = null
+      if (scoreKeyHoldTimerRef.current) {
+        clearTimeout(scoreKeyHoldTimerRef.current)
+        scoreKeyHoldTimerRef.current = null
       }
 
-      if (spaceDidHoldRef.current) {
-        spaceDidHoldRef.current = false
+      if (scoreKeyDidHoldRef.current) {
+        scoreKeyDidHoldRef.current = false
         return
       }
 
@@ -449,7 +463,7 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
-      if (spaceHoldTimerRef.current) clearTimeout(spaceHoldTimerRef.current)
+      if (scoreKeyHoldTimerRef.current) clearTimeout(scoreKeyHoldTimerRef.current)
       if (singleClickTimerRef.current) clearTimeout(singleClickTimerRef.current)
       Object.values(teamHoldTimerRef.current).forEach(clearTimeout)
     }
