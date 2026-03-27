@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.7.0...@scoreboard/frontend@0.8.0) (2026-03-27)
+
+### Features
+
+* **backend:** :sparkles: add nestjs backend app ([7fc2cc1](https://github.com/jadscript/scoreboard/commit/7fc2cc1f518b6241a5e70711761b8821a3e44448))
+* **backend:** implement OnModuleInit to log backend port on startup ([981ecfa](https://github.com/jadscript/scoreboard/commit/981ecfa6cef91fabccf2eddf910a86a9590981bc))
+* **backend:** log CORS configuration details on module initialization ([022765d](https://github.com/jadscript/scoreboard/commit/022765dd96f974ebe2b21c42c43e16894924b3c1))
+
 ## [0.7.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.6.0...@scoreboard/frontend@0.7.0) (2026-03-16)
 
 ## [0.6.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.5.0...@scoreboard/frontend@0.6.0) (2026-03-16)
