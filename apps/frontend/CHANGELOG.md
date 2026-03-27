@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.9.0...@scoreboard/frontend@0.10.0) (2026-03-27)
+
+### Features
+
+* :sparkles: add config and ranking page ([fb95e13](https://github.com/jadscript/scoreboard/commit/fb95e13ed29456d14b73f9fe1074def48e391554))
+
 ## [0.9.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.8.0...@scoreboard/frontend@0.9.0) (2026-03-27)
 
 ### Features
