@@ -43,6 +43,9 @@ export function ScoreboardPage() {
     setHistory,
     serving,
     courtSwitched,
+    team1Name,
+    team2Name,
+    setTeamName,
   } = useScoreboard({ onScore: triggerFlash });
 
   const handleScoreWithFlash = (team: "team1" | "team2") => {
@@ -54,22 +57,38 @@ export function ScoreboardPage() {
     <div className="flex flex-col items-center justify-between p-4 w-full h-screen">
       <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-full border-8 border-black">
         <div className="absolute top-0 left-0 right-0 flex justify-center">
-          <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-full max-[459px]:rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
+          <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
             {/* Info group: team labels + set scores */}
             <div className="flex gap-4 flex-1">
               <div className="flex flex-col gap-1 flex-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-600 rounded-full" />
-                  <span className="font-bold text-sm mr-2">Team 1</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-3 h-3 shrink-0 bg-green-600 rounded-full" />
+                  <input
+                    type="text"
+                    value={team1Name}
+                    onChange={(e) => setTeamName("team1", e.target.value)}
+                    className="flex font-bold text-sm border-b border-transparent hover:border-gray-300 focus:border-black outline-none"
+                    style={{ width: `${team1Name.length}ch` }}
+                    aria-label="Nome do time 1"
+                    maxLength={40}
+                  />
                   <div
-                    className={`w-2.5 h-2.5 rounded-full bg-black transition-opacity duration-200 ${serving === "team1" ? "opacity-100" : "opacity-0"}`}
+                    className={`w-2.5 h-2.5 shrink-0 rounded-full bg-black transition-opacity duration-200 ${serving === "team1" ? "opacity-100" : "opacity-0"}`}
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full" />
-                  <span className="font-bold text-sm mr-2">Team 2</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-3 h-3 shrink-0 bg-blue-600 rounded-full" />
+                  <input
+                    type="text"
+                    value={team2Name}
+                    onChange={(e) => setTeamName("team2", e.target.value)}
+                    className="flex font-bold text-sm border-b border-transparent hover:border-gray-300 focus:border-black outline-none"
+                    style={{ width: `${team2Name.length}ch` }}
+                    aria-label="Nome do time 2"
+                    maxLength={40}
+                  />
                   <div
-                    className={`w-2.5 h-2.5 rounded-full bg-black transition-opacity duration-200 ${serving === "team2" ? "opacity-100" : "opacity-0"}`}
+                    className={`w-2.5 h-2.5 shrink-0 rounded-full bg-black transition-opacity duration-200 ${serving === "team2" ? "opacity-100" : "opacity-0"}`}
                   />
                 </div>
               </div>
@@ -111,10 +130,8 @@ export function ScoreboardPage() {
               </div>
             </div>
 
-            <Divider className="hidden md:block" />
-
             {/* Actions group: fullscreen, undo, reset */}
-            <div className="flex items-center gap-2 max-[459px]:w-full max-[459px]:justify-center max-[459px]:border-t-2 max-[459px]:border-gray-300 max-[459px]:pt-2">
+            <div className="flex items-center gap-2 w-full justify-center border-t-2 border-gray-300 pt-2">
               <button
                 onClick={toggleFullscreen}
                 className="transition-colors cursor-pointer bg-gray-500 hover:bg-gray-600 text-white rounded-full p-3"

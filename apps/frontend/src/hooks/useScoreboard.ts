@@ -22,12 +22,15 @@ interface Snapshot {
 
 interface State extends Snapshot {
   history: Snapshot[]
+  team1Name: string
+  team2Name: string
 }
 
 type Action =
   | { type: 'SCORE'; team: Team }
   | { type: 'UNDO' }
   | { type: 'RESET' }
+  | { type: 'SET_TEAM_NAME'; team: Team; name: string }
 
 const ZERO: Score = { team1: 0, team2: 0 }
 
@@ -39,7 +42,102 @@ const INITIAL_SNAPSHOT: Snapshot = {
   setHistory: [],
 }
 
-const INITIAL_STATE: State = { ...INITIAL_SNAPSHOT, history: [] }
+const INITIAL_STATE: State = {
+  ...INITIAL_SNAPSHOT,
+  history: [],
+  team1Name: 'Time 1',
+  team2Name: 'Time 2',
+}
+
+const STORAGE_KEY = 'scoreboard/match-state'
+const PERSIST_VERSION = 1
+const TEAM_NAME_MAX_LEN = 40
+const PERSIST_DEBOUNCE_MS = 250
+
+function clampTeamName(name: string, fallback: string): string {
+  const t = name.trim().slice(0, TEAM_NAME_MAX_LEN)
+  return t.length > 0 ? t : fallback
+}
+
+function isFiniteNonNegInt(n: unknown): n is number {
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0 && Math.floor(n) === n
+}
+
+function isScore(x: unknown): x is Score {
+  if (typeof x !== 'object' || x === null) return false
+  const o = x as Record<string, unknown>
+  return isFiniteNonNegInt(o.team1) && isFiniteNonNegInt(o.team2)
+}
+
+function isSnapshotValue(x: unknown): x is Snapshot {
+  if (typeof x !== 'object' || x === null) return false
+  const o = x as Record<string, unknown>
+  return (
+    isScore(o.points) &&
+    isScore(o.games) &&
+    isScore(o.sets) &&
+    typeof o.isTiebreak === 'boolean' &&
+    Array.isArray(o.setHistory) &&
+    o.setHistory.every(isScore)
+  )
+}
+
+function isPersistedStateBody(x: unknown): x is State {
+  if (typeof x !== 'object' || x === null) return false
+  const o = x as Record<string, unknown>
+  if (!isScore(o.points) || !isScore(o.games) || !isScore(o.sets)) return false
+  if (typeof o.isTiebreak !== 'boolean') return false
+  if (!Array.isArray(o.setHistory) || !o.setHistory.every(isScore)) return false
+  if (!Array.isArray(o.history) || !o.history.every(isSnapshotValue)) return false
+  if (typeof o.team1Name !== 'string' || typeof o.team2Name !== 'string') return false
+  return true
+}
+
+function parseStoredState(raw: string | null): State | null {
+  if (raw === null || raw === '') return null
+  try {
+    const data = JSON.parse(raw) as unknown
+    if (typeof data !== 'object' || data === null) return null
+    const o = data as Record<string, unknown>
+    if (o.v !== PERSIST_VERSION) return null
+    const body = { ...o }
+    delete body.v
+    if (!isPersistedStateBody(body)) return null
+    return {
+      points: body.points,
+      games: body.games,
+      sets: body.sets,
+      isTiebreak: body.isTiebreak,
+      setHistory: body.setHistory,
+      history: body.history,
+      team1Name: clampTeamName(body.team1Name, 'Time 1'),
+      team2Name: clampTeamName(body.team2Name, 'Time 2'),
+    }
+  } catch {
+    return null
+  }
+}
+
+function serializeState(state: State): string {
+  return JSON.stringify({
+    v: PERSIST_VERSION,
+    points: state.points,
+    games: state.games,
+    sets: state.sets,
+    isTiebreak: state.isTiebreak,
+    setHistory: state.setHistory,
+    history: state.history,
+    team1Name: state.team1Name,
+    team2Name: state.team2Name,
+  })
+}
+
+function readInitialState(): State {
+  if (typeof globalThis === 'undefined' || typeof globalThis.localStorage === 'undefined') {
+    return INITIAL_STATE
+  }
+  return parseStoredState(globalThis.localStorage.getItem(STORAGE_KEY)) ?? INITIAL_STATE
+}
 
 function gameWinner(points: Score, isTiebreak: boolean): Team | null {
   const { team1, team2 } = points
@@ -80,12 +178,26 @@ function setWinner(games: Score): Team | null {
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'RESET':
-      return INITIAL_STATE
+      return {
+        ...INITIAL_STATE,
+        team1Name: state.team1Name,
+        team2Name: state.team2Name,
+      }
+
+    case 'SET_TEAM_NAME': {
+      const key = action.team === 'team1' ? 'team1Name' : 'team2Name'
+      return { ...state, [key]: action.name.slice(0, TEAM_NAME_MAX_LEN) }
+    }
 
     case 'UNDO': {
       if (state.history.length === 0) return state
       const prev = state.history[state.history.length - 1]
-      return { ...prev, history: state.history.slice(0, -1) }
+      return {
+        ...prev,
+        history: state.history.slice(0, -1),
+        team1Name: state.team1Name,
+        team2Name: state.team2Name,
+      }
     }
 
     case 'SCORE': {
@@ -120,6 +232,8 @@ function reducer(state: State, action: Action): State {
           isTiebreak: false,
           setHistory: [...state.setHistory, newGames],
           history: [...state.history, snapshot],
+          team1Name: state.team1Name,
+          team2Name: state.team2Name,
         }
       }
 
@@ -133,6 +247,8 @@ function reducer(state: State, action: Action): State {
         isTiebreak,
         setHistory: state.setHistory,
         history: [...state.history, snapshot],
+        team1Name: state.team1Name,
+        team2Name: state.team2Name,
       }
     }
   }
@@ -140,16 +256,23 @@ function reducer(state: State, action: Action): State {
 
 const POINT_LABELS = ['0', '15', '30', '40'] as const
 
-function teamLabel(team: Team): string {
+function displayTeamName(team: Team, names: Pick<State, 'team1Name' | 'team2Name'>): string {
+  const raw = team === 'team1' ? names.team1Name : names.team2Name
+  const t = raw.trim()
+  if (t.length > 0) return t
   return team === 'team1' ? 'Time 1' : 'Time 2'
 }
 
-function describeLastScoringAction(prior: Snapshot, current: Snapshot): string {
+function describeLastScoringAction(
+  prior: Snapshot,
+  current: Snapshot,
+  names: Pick<State, 'team1Name' | 'team2Name'>,
+): string {
   if (current.setHistory.length > prior.setHistory.length) {
     const finalGames = current.setHistory[current.setHistory.length - 1]
     const winner: Team = finalGames.team1 > finalGames.team2 ? 'team1' : 'team2'
     const setNum = current.setHistory.length
-    return `Fim do set ${setNum} (${finalGames.team1}–${finalGames.team2}), vitória do ${teamLabel(winner)}`
+    return `Fim do set ${setNum} (${finalGames.team1}–${finalGames.team2}), vitória de ${displayTeamName(winner, names)}`
   }
 
   if (current.games.team1 !== prior.games.team1 || current.games.team2 !== prior.games.team2) {
@@ -158,31 +281,62 @@ function describeLastScoringAction(prior: Snapshot, current: Snapshot): string {
     }
     const t1Delta = current.games.team1 - prior.games.team1
     const winner: Team = t1Delta > 0 ? 'team1' : 'team2'
-    return `Game para o ${teamLabel(winner)} (games ${current.games.team1}–${current.games.team2})`
+    return `Game para ${displayTeamName(winner, names)} (games ${current.games.team1}–${current.games.team2})`
   }
 
   if (current.points.team1 !== prior.points.team1) {
     if (current.isTiebreak) {
-      return `Ponto para o ${teamLabel('team1')} no tie-break (${current.points.team1}–${current.points.team2})`
+      return `Ponto para ${displayTeamName('team1', names)} no tie-break (${current.points.team1}–${current.points.team2})`
     }
-    return `Ponto para o ${teamLabel('team1')}`
+    return `Ponto para ${displayTeamName('team1', names)}`
   }
   if (current.points.team2 !== prior.points.team2) {
     if (current.isTiebreak) {
-      return `Ponto para o ${teamLabel('team2')} no tie-break (${current.points.team1}–${current.points.team2})`
+      return `Ponto para ${displayTeamName('team2', names)} no tie-break (${current.points.team1}–${current.points.team2})`
     }
-    return `Ponto para o ${teamLabel('team2')}`
+    return `Ponto para ${displayTeamName('team2', names)}`
   }
 
   return 'Última alteração no placar'
 }
 
 export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
-  const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
+  const [state, dispatch] = useReducer(reducer, undefined, readInitialState)
   const onScoreRef = useRef(options?.onScore)
+  const stateForPersistRef = useRef(state)
+
+  useEffect(() => {
+    stateForPersistRef.current = state
+  }, [state])
+
   useEffect(() => {
     onScoreRef.current = options?.onScore
   })
+
+  useEffect(() => {
+    if (typeof globalThis.localStorage === 'undefined') return
+    const id = globalThis.setTimeout(() => {
+      try {
+        globalThis.localStorage.setItem(STORAGE_KEY, serializeState(stateForPersistRef.current))
+      } catch {
+        /* quota, private mode */
+      }
+    }, PERSIST_DEBOUNCE_MS)
+    return () => {
+      globalThis.clearTimeout(id)
+    }
+  }, [state])
+
+  useEffect(() => {
+    return () => {
+      if (typeof globalThis.localStorage === 'undefined') return
+      try {
+        globalThis.localStorage.setItem(STORAGE_KEY, serializeState(stateForPersistRef.current))
+      } catch {
+        /* quota, private mode */
+      }
+    }
+  }, [])
 
   const handleScore = useCallback((team: Team) => {
     dispatch({ type: 'SCORE', team })
@@ -194,6 +348,10 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
 
   const handleReset = useCallback(() => {
     dispatch({ type: 'RESET' })
+  }, [])
+
+  const setTeamName = useCallback((team: Team, name: string) => {
+    dispatch({ type: 'SET_TEAM_NAME', team, name })
   }, [])
 
   const lastKeyUpRef = useRef<number | null>(null)
@@ -349,7 +507,10 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
       isTiebreak: state.isTiebreak,
       setHistory: state.setHistory,
     }
-    return describeLastScoringAction(prior, current)
+    return describeLastScoringAction(prior, current, {
+      team1Name: state.team1Name,
+      team2Name: state.team2Name,
+    })
   }, [state])
 
   return {
@@ -369,5 +530,10 @@ export function useScoreboard(options?: { onScore?: (team: Team) => void }) {
     canUndo,
     canReset,
     undoActionDescription,
+    team1Name: state.team1Name,
+    team2Name: state.team2Name,
+    setTeamName,
   }
 }
+
+export type { Team as ScoreboardTeam }
