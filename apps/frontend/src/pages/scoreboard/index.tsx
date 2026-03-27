@@ -3,26 +3,26 @@ import { useRef, useState } from "react";
 import { useScoreboard } from "../../hooks/useScoreboard";
 import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
 
-const Divider = () => (
-  <div className="w-[2px] h-[45px] bg-gray-300 rounded-full" />
+const Divider = ({ className }: { className?: string }) => (
+  <div className={`w-[2px] h-[45px] bg-gray-300 rounded-full ${className}`} />
 );
 
 export function ScoreboardPage() {
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
-  const [undoConfirmOpen, setUndoConfirmOpen] = useState(false)
-  const [scoredTeam, setScoredTeam] = useState<"team1" | "team2" | null>(null)
-  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [undoConfirmOpen, setUndoConfirmOpen] = useState(false);
+  const [scoredTeam, setScoredTeam] = useState<"team1" | "team2" | null>(null);
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen()
-      setIsFullscreen(true)
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
     } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
+      document.exitFullscreen();
+      setIsFullscreen(false);
     }
-  }
+  };
 
   const triggerFlash = (team: "team1" | "team2") => {
     if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
@@ -56,8 +56,8 @@ export function ScoreboardPage() {
         <div className="absolute top-0 left-0 right-0 flex justify-center">
           <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-full max-[459px]:rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
             {/* Info group: team labels + set scores */}
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col gap-1">
+            <div className="flex gap-4 flex-1">
+              <div className="flex flex-col gap-1 flex-1">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-600 rounded-full" />
                   <span className="font-bold text-sm mr-2">Team 1</span>
@@ -76,27 +76,45 @@ export function ScoreboardPage() {
 
               <Divider />
 
-              {Array.from({ length: 3 }, (_, i) => {
-                const completed = setHistory[i];
-                const isCurrent = i === setHistory.length;
-                const t1 = completed ? completed.team1 : isCurrent ? games.team1 : 0;
-                const t2 = completed ? completed.team2 : isCurrent ? games.team2 : 0;
-                const team1Won = completed ? completed.team1 > completed.team2 : null;
-                return (
-                  <div key={i} className="flex flex-col gap-1 items-center">
-                    <span className={`font-bold text-sm w-3 text-center ${team1Won === false ? "opacity-40" : ""}`}>
-                      {t1}
-                    </span>
-                    <span className={`font-bold text-sm w-3 text-center ${team1Won === true ? "opacity-40" : ""}`}>
-                      {t2}
-                    </span>
-                  </div>
-                );
-              })}
+              <div className="flex gap-4">
+                {Array.from({ length: 3 }, (_, i) => {
+                  const completed = setHistory[i];
+                  const isCurrent = i === setHistory.length;
+                  const t1 = completed
+                    ? completed.team1
+                    : isCurrent
+                      ? games.team1
+                      : 0;
+                  const t2 = completed
+                    ? completed.team2
+                    : isCurrent
+                      ? games.team2
+                      : 0;
+                  const team1Won = completed
+                    ? completed.team1 > completed.team2
+                    : null;
+                  return (
+                    <div key={i} className="flex flex-col gap-1 items-center">
+                      <span
+                        className={`font-bold text-sm w-3 text-center ${team1Won === false ? "opacity-40" : ""}`}
+                      >
+                        {t1}
+                      </span>
+                      <span
+                        className={`font-bold text-sm w-3 text-center ${team1Won === true ? "opacity-40" : ""}`}
+                      >
+                        {t2}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
+            <Divider className="hidden md:block" />
+
             {/* Actions group: fullscreen, undo, reset */}
-            <div className="flex items-center gap-2 max-[459px]:w-full max-[459px]:justify-center max-[459px]:border-t max-[459px]:border-gray-200 max-[459px]:pt-2">
+            <div className="flex items-center gap-2 max-[459px]:w-full max-[459px]:justify-center max-[459px]:border-t-2 max-[459px]:border-gray-300 max-[459px]:pt-2">
               <button
                 onClick={toggleFullscreen}
                 className="transition-colors cursor-pointer bg-gray-500 hover:bg-gray-600 text-white rounded-full p-3"
@@ -107,7 +125,7 @@ export function ScoreboardPage() {
 
               <button
                 type="button"
-              disabled={!canUndo}
+                disabled={!canUndo}
                 onClick={() => setUndoConfirmOpen(true)}
                 className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-3"
                 title="Desfazer última ação"
