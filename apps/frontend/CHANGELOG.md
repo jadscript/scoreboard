@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.11.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.10.0...@scoreboard/frontend@0.11.0) (2026-03-28)
+
+### Features
+
+* :sparkles: enhance ranking page to include player rankings and refactor ranking stats logic ([916a0f8](https://github.com/jadscript/scoreboard/commit/916a0f8a2f3db7be526d4ddbb79fcb4a17c3d661))
+
 ## [0.10.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.9.0...@scoreboard/frontend@0.10.0) (2026-03-27)
 
 ### Features
