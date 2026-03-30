@@ -1,5 +1,5 @@
 import { ChevronDown, Search } from 'lucide-react'
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { TeamDraft } from '../types'
 import { getExcludedNameKeys, normalizePlayerKey } from '../playerSelection'
 import type { GameUser } from '../useGameUsers'
@@ -29,6 +29,10 @@ export function GamePlayerSearchSelect({
   const containerRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState(value)
+
+  useEffect(() => {
+    setQuery(value)
+  }, [value])
 
   const excludedNameKeys = useMemo(
     () => getExcludedNameKeys(teams, teamIndex, playerIndex),

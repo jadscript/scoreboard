@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { loadGameSetup } from "../game/gameSetupStorage";
-import { formatTeamDisplayName } from "../game/playerSelection";
+import { playersPerTeamForFormat } from "../game/types";
+import { useGameUsers } from "../game/useGameUsers";
 import { useScoreboard } from "../../hooks/useScoreboard";
 import { appendSavedMatch } from "./matchHistoryStorage";
 import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
@@ -22,6 +23,10 @@ export function ScoreboardPage() {
   const clearMatchHistorySaveError = useCallback(() => {
     setMatchHistorySaveError(false);
   }, []);
+
+  const { users } = useGameUsers();
+  const gameSetup = useMemo(() => loadGameSetup(), []);
+  const playersPerTeam = playersPerTeamForFormat(gameSetup.gameFormat);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -61,7 +66,10 @@ export function ScoreboardPage() {
     setTeamName,
     handleInvertTeams,
     matchFinished,
-  } = useScoreboard({ onScore: triggerFlash, onAfterUndo: clearMatchHistorySaveError });
+  } = useScoreboard({
+    onScore: triggerFlash,
+    onAfterUndo: clearMatchHistorySaveError,
+  });
 
   const handleInvertTeamsAndClearHistorySave = useCallback(() => {
     handleInvertTeams();
@@ -80,7 +88,10 @@ export function ScoreboardPage() {
       gamesToWinSet,
       setsToWinMatch,
       finalSets: { team1: sets.team1, team2: sets.team2 },
-      setGameScores: setHistory.map((s) => ({ team1: s.team1, team2: s.team2 })),
+      setGameScores: setHistory.map((s) => ({
+        team1: s.team1,
+        team2: s.team2,
+      })),
       pointEvents,
     });
     if (saved) {
@@ -101,30 +112,6 @@ export function ScoreboardPage() {
     pointEvents,
   ]);
 
-  const setupTeams = useMemo(() => loadGameSetup().teams, []);
-
-  const handleTeamName = useCallback(
-    (team: "team1" | "team2", value: string) => {
-      setTeamName(team, value);
-      const other = team === "team1" ? "team2" : "team1";
-      const otherName = team === "team1" ? team2Name : team1Name;
-      if (
-        value.trim().length > 0 &&
-        value.trim().toLowerCase() === otherName.trim().toLowerCase()
-      ) {
-        const alt = setupTeams.find(
-          (t) =>
-            formatTeamDisplayName(t.playerNames).toLowerCase() !==
-            value.trim().toLowerCase(),
-        );
-        if (alt) {
-          setTeamName(other, formatTeamDisplayName(alt.playerNames));
-        }
-      }
-    },
-    [setTeamName, team1Name, team2Name, setupTeams],
-  );
-
   const handleScoreWithFlash = (team: "team1" | "team2") => {
     handleScore(team);
     triggerFlash(team);
@@ -133,31 +120,18 @@ export function ScoreboardPage() {
   return (
     <div className="flex flex-col items-center justify-between p-4 w-full h-screen">
       <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-full border-8 border-black">
-        <div className="absolute top-0 left-0 right-0 flex justify-center max-w-lg mx-auto">
+        <div className="absolute top-0 left-0 right-0 flex justify-center max-w-2xl mx-auto px-1">
           <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
             <ScoreboardInfoGroup
               team1Name={team1Name}
               team2Name={team2Name}
-              setTeamName={handleTeamName}
+              setTeamName={setTeamName}
               serving={serving}
               games={games}
               setHistory={setHistory}
               setsToWinMatch={setsToWinMatch}
-              setupTeams={setupTeams}
-            />
-
-            <ScoreboardToolbar
-              isFullscreen={isFullscreen}
-              canUndo={canUndo}
-              canReset={canReset}
-              matchFinished={matchFinished}
-              saveToHistoryError={matchHistorySaveError}
-              onInvertTeams={handleInvertTeamsAndClearHistorySave}
-              onToggleFullscreen={toggleFullscreen}
-              onRequestUndo={() => setUndoConfirmOpen(true)}
-              onRequestReset={() => setResetConfirmOpen(true)}
-              onRequestSettings={() => setSettingsConfirmOpen(true)}
-              onSaveMatchToHistory={handleSaveMatchToHistory}
+              playersPerTeam={playersPerTeam}
+              users={users}
             />
           </div>
         </div>
@@ -176,6 +150,24 @@ export function ScoreboardPage() {
           scoredTeam={scoredTeam}
           onScore={() => handleScoreWithFlash("team2")}
         />
+
+        <div className="absolute bottom-0 left-0 right-0 flex justify-center max-w-2xl mx-auto px-1">
+          <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
+            <ScoreboardToolbar
+              isFullscreen={isFullscreen}
+              canUndo={canUndo}
+              canReset={canReset}
+              matchFinished={matchFinished}
+              saveToHistoryError={matchHistorySaveError}
+              onInvertTeams={handleInvertTeamsAndClearHistorySave}
+              onToggleFullscreen={toggleFullscreen}
+              onRequestUndo={() => setUndoConfirmOpen(true)}
+              onRequestReset={() => setResetConfirmOpen(true)}
+              onRequestSettings={() => setSettingsConfirmOpen(true)}
+              onSaveMatchToHistory={handleSaveMatchToHistory}
+            />
+          </div>
+        </div>
       </div>
 
       {settingsConfirmOpen && (

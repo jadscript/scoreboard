@@ -1,5 +1,5 @@
 import {
-  ArrowDownUp,
+  // ArrowDownUp,
   Maximize,
   Minimize,
   RotateCcw,
@@ -28,7 +28,7 @@ export function ScoreboardToolbar({
   canReset,
   matchFinished,
   saveToHistoryError,
-  onInvertTeams,
+  // onInvertTeams,
   onToggleFullscreen,
   onRequestUndo,
   onRequestReset,
@@ -37,8 +37,8 @@ export function ScoreboardToolbar({
 }: Props) {
   const resetDisabled = matchFinished || !canReset;
   return (
-    <div className="grid grid-cols-3 items-center justify-between w-full border-t-2 border-gray-300 pt-2">
-      <div className="flex justify-start">
+    <div className="flex gap-8 items-center justify-between">
+      {/* <div className="flex justify-start">
         <button
           type="button"
           onClick={onInvertTeams}
@@ -47,7 +47,7 @@ export function ScoreboardToolbar({
         >
           <ArrowDownUp size={16} />
         </button>
-      </div>
+      </div> */}
 
       <div className="flex justify-center items-center gap-2 flex-wrap">
         <button

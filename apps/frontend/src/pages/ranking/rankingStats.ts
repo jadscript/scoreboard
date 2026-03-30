@@ -1,5 +1,8 @@
 import type { SavedMatchRecord } from "../scoreboard/matchHistoryStorage";
-import { normalizePlayerKey } from "../game/playerSelection";
+import {
+  canonicalTeamKeyFromDisplay,
+  normalizePlayerKey,
+} from "../game/playerSelection";
 
 /** Linha de ranking (time ou jogador): vitórias, derrotas e partidas disputadas. */
 export interface RankingRow {
@@ -96,14 +99,14 @@ export function buildTeamRanking(matches: SavedMatchRecord[]): RankingRow[] {
   for (const m of matches) {
     const raw1 = m.team1Name.trim() || "Time 1";
     const raw2 = m.team2Name.trim() || "Time 2";
-    const k1 = raw1.toLowerCase();
-    const k2 = raw2.toLowerCase();
+    const { key: k1, displayName: d1 } = canonicalTeamKeyFromDisplay(raw1);
+    const { key: k2, displayName: d2 } = canonicalTeamKeyFromDisplay(raw2);
 
     if (!map.has(k1)) {
-      map.set(k1, { displayName: raw1, wins: 0, losses: 0, matches: 0 });
+      map.set(k1, { displayName: d1, wins: 0, losses: 0, matches: 0 });
     }
     if (!map.has(k2)) {
-      map.set(k2, { displayName: raw2, wins: 0, losses: 0, matches: 0 });
+      map.set(k2, { displayName: d2, wins: 0, losses: 0, matches: 0 });
     }
 
     const t1 = map.get(k1)!;
