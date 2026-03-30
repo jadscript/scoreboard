@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.12.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.11.0...@scoreboard/frontend@0.12.0) (2026-03-30)
+
+### Features
+
+* **frontend:** :sparkles: add team display parsing and canonical key generation functions; update scoreboard components for improved team management ([4f994b9](https://github.com/jadscript/scoreboard/commit/4f994b9be8f68dcf31ff48d0ee1ba99341dd6885))
+
 ## [0.11.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.10.0...@scoreboard/frontend@0.11.0) (2026-03-28)
 
 ### Features
