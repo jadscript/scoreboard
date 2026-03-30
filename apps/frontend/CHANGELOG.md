@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.12.0...@scoreboard/frontend@0.13.0) (2026-03-30)
+
+### Bug Fixes
+
+* **scoreboard:** adjust padding in ScoreboardPage layout for improved visual consistency ([823ed19](https://github.com/jadscript/scoreboard/commit/823ed19e9d92763c955ea8c0de0106da6090daa4))
+
 ## [0.12.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.11.0...@scoreboard/frontend@0.12.0) (2026-03-30)
 
 ### Features
