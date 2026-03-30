@@ -152,7 +152,7 @@ export function ScoreboardPage() {
         />
 
         <div className="absolute bottom-0 left-0 right-0 flex justify-center max-w-2xl mx-auto px-1">
-          <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
+          <div className="flex flex-wrap px-4 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
             <ScoreboardToolbar
               isFullscreen={isFullscreen}
               canUndo={canUndo}
