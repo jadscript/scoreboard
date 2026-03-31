@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.14.0...@scoreboard/frontend@0.15.0) (2026-03-31)
+
+### Features
+
+* **auth:** :pencil: enhance Keycloak setup with passwordless Email OTP authentication and update Docker configurations ([f34363d](https://github.com/jadscript/scoreboard/commit/f34363d7dbe80a7d8df9b25f9b0de34607a83abb))
+
 ## [0.14.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.13.0...@scoreboard/frontend@0.14.0) (2026-03-31)
 
 ### Features
