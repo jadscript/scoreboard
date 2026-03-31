@@ -107,19 +107,20 @@ Docker image: `apps/backend/Dockerfile` — multi-stage build via `turbo prune @
 
 ### `apps/auth` (`@scoreboard/auth`)
 
-Custom Keycloak 26.5.6 Docker image. Allows adding login themes (FreeMarker), custom providers (Java SPIs), and startup scripts. Built entirely via Docker — no Node.js build step.
+Custom Keycloak 26.5.6 Docker image with passwordless Email OTP authentication. Built entirely via Docker — no Node.js build step.
 
 ```
 apps/auth/
-├── Dockerfile                 # Custom Keycloak image (multi-stage with optional Maven build)
+├── Dockerfile                 # Production image (multi-stage with optional Maven build)
+├── Dockerfile.local           # Development image (start-dev mode)
 ├── VERSION                    # Plain-text version (used by CI for git tags / GitHub Releases)
-├── themes/                    # FreeMarker login/account/email themes
-└── providers/                 # Compiled JAR providers (SPIs) or Maven source (future)
+├── themes/                    # FreeMarker login/account/email themes (future)
+└── providers/                 # Java SPI JARs (future custom providers)
 ```
 
-This is **not** a Node.js package — it is not part of the pnpm workspace or Turborepo pipeline. It is built entirely via Docker.
+This is **not** a Node.js package — it is not part of the pnpm workspace or Turborepo pipeline.
 
-Docker image: `apps/auth/Dockerfile` — extends `quay.io/keycloak/keycloak:26.5.6` with custom themes and providers.
+**Bundled provider:** [keycloak-magic-link](https://github.com/p2-inc/keycloak-magic-link) v0.59 (Phase Two) — downloaded from Maven Central during Docker build. Provides the Email OTP authenticator and Magic Link authenticator.
 
 ### `apps/frontend`
 
@@ -353,11 +354,95 @@ import { useAuth } from '../hooks/useAuth'
 const { user, roles, hasRole, logout, token } = useAuth()
 ```
 
+## Authentication Flow (Email OTP)
+
+The app uses **passwordless Email OTP** authentication. Users enter their email, receive a 6-digit code, and enter it to log in. If the email doesn't match an existing user, Keycloak creates one automatically.
+
+This is powered by the [keycloak-magic-link](https://github.com/p2-inc/keycloak-magic-link) extension (Email OTP authenticator) and emails are sent via **Resend** (SMTP gateway).
+
+### Configuring Resend as email provider
+
+[Resend](https://resend.com) is used to deliver OTP emails via its SMTP gateway. You need:
+
+1. A [Resend account](https://resend.com/signup)
+2. A [verified domain](https://resend.com/domains) (e.g. `yourdomain.com`)
+3. An [API key](https://resend.com/api-keys)
+
+Then configure SMTP in the Keycloak Admin Console:
+
+1. Go to **Realm Settings > Email**
+2. Fill in the fields:
+
+| Setting | Value |
+|---|---|
+| From | `noreply@yourdomain.com` (must match your verified Resend domain) |
+| From Display Name | `Scoreboard` (or any name you prefer) |
+| Host | `smtp.resend.com` |
+| Port | `587` |
+| Encryption | Enable **StartTLS** |
+| Authentication | **Enabled** |
+| Username | `resend` |
+| Password | Your Resend API key (starts with `re_`) |
+
+3. Click **Test connection** to verify that Keycloak can send emails through Resend
+4. Save
+
+> **Tip:** Resend also supports ports `25`, `465` (implicit TLS), and `2587`. Port `587` with StartTLS is recommended.
+
+### Configuring the Email OTP authentication flow
+
+After the first boot with the provider installed, set up the passwordless login flow.
+
+> **Important:** The Email OTP authenticator does **not** have its own email form. It requires a **Username Form** step before it to collect the email and identify the user. Without it, you'll get an `NullPointerException` ("getUser() is null") and a 500 error page.
+
+**1. Create the flow**
+
+1. Go to **Authentication > Flows**
+2. Click **Create flow**
+3. Name: `Email OTP Browser`, Type: `basic-flow`
+
+**2. Add the steps**
+
+Add executions and a sub-flow in this order:
+
+| Step | Type | Requirement |
+|---|---|---|
+| **Cookie** | execution | `ALTERNATIVE` |
+| **Email OTP Login** | sub-flow | `ALTERNATIVE` |
+| **Username Form** | execution (inside sub-flow) | `REQUIRED` |
+| **Email OTP** | execution (inside sub-flow) | `REQUIRED` |
+
+The structure should look like this:
+
+```
+Email OTP Browser
+├── Cookie                        (ALTERNATIVE)
+└── Email OTP Login (sub-flow)    (ALTERNATIVE)
+    ├── Username Form             (REQUIRED)
+    └── Email OTP                 (REQUIRED)
+```
+
+**3. Configure Email OTP**
+
+Click the gear icon on the **Email OTP** step and set:
+
+| Option | Value |
+|---|---|
+| Force create user | **ON** — auto-registers users that don't exist |
+
+**4. Set as default**
+
+1. Go to **Authentication > Bindings** (or **Realm Settings > Authentication**)
+2. Set **Browser Flow** to `Email OTP Browser`
+3. Save
+
+**Flow behavior:** The user enters their email in the Username Form. If the user exists, the Email OTP sends a 6-digit code. If the user does not exist and "Force create user" is ON, the Email OTP creates the user and sends the code. The user enters the code to authenticate.
+
 ## Infrastructure (Docker Compose)
 
 ### Development
 
-Starts PostgreSQL and a custom Keycloak image (built from `apps/auth/Dockerfile`) locally. Credentials are hardcoded for convenience.
+Starts PostgreSQL and a custom Keycloak image (built from `apps/auth/Dockerfile.local`) locally. Credentials are hardcoded for convenience.
 
 ```bash
 docker compose up -d          # start

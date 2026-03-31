@@ -21,11 +21,8 @@ FROM quay.io/keycloak/keycloak:26.5.6
 # Custom themes — uncomment when themes/<theme-name>/ exists:
 # COPY themes/ /opt/keycloak/themes/
 
-# Custom providers (SPIs / plugins) — uncomment when JARs are ready:
-# COPY providers/ /opt/keycloak/providers/
-#
-# When using the Maven builder stage above, use instead:
-# COPY --from=builder /build/target/*.jar /opt/keycloak/providers/
+# Email OTP / Magic Link authenticator (Phase Two)
+ADD --chmod=644 https://repo1.maven.org/maven2/io/phasetwo/keycloak/keycloak-magic-link/0.59/keycloak-magic-link-0.59.jar /opt/keycloak/providers/keycloak-magic-link.jar
 
 # Pre-bake runtime options so Keycloak won't re-build on every startup.
 RUN /opt/keycloak/bin/kc.sh build \

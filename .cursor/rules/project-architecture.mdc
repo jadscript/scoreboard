@@ -125,17 +125,20 @@ apps/backend/src/
 
 ## App: `apps/auth` (`@scoreboard/auth`)
 
-Custom Keycloak 26.5.6 Docker image — **not a Node.js/TypeScript app**, not part of the pnpm workspace or Turborepo pipeline. Keycloak customizations (themes, providers) use FreeMarker templates and Java/Maven respectively.
+Custom Keycloak 26.5.6 Docker image with passwordless Email OTP authentication — **not a Node.js/TypeScript app**, not part of the pnpm workspace or Turborepo pipeline.
 
 ```
 apps/auth/
-├── Dockerfile              ← Extends quay.io/keycloak/keycloak:26.5.6
+├── Dockerfile              ← Production image (postgres, health, metrics, --optimized)
+├── Dockerfile.local        ← Development image (start-dev mode)
 ├── VERSION                 ← Plain-text version (used by CI for git tags / GitHub Releases)
-├── themes/                 ← FreeMarker login/account/email themes
-└── providers/              ← Java SPI JARs (built via Maven, future)
+├── themes/                 ← FreeMarker login/account/email themes (future)
+└── providers/              ← Java SPI JARs (future custom providers)
 ```
 
-- Both `docker-compose.yml` (dev) and `docker-compose.prod.yml` build from `apps/auth/Dockerfile` instead of using the upstream image directly.
+- Both `docker-compose.yml` (dev) and `docker-compose.prod.yml` build from `apps/auth/Dockerfile*`.
+- **Bundled provider:** [keycloak-magic-link](https://github.com/p2-inc/keycloak-magic-link) v0.59 — downloaded from Maven Central via `ADD` in the Dockerfile. Provides Email OTP authenticator with auto-registration (`forceCreate`).
+- **Email delivery:** Resend SMTP (`smtp.resend.com:587` + StartTLS). Configured per Realm in the Keycloak Admin Console.
 - Future Java providers will be compiled with Maven and the resulting JARs copied into the image at build time.
 - Versioned via `VERSION` file + git tags (`@scoreboard/auth@X.Y.Z`) + GitHub Releases — no release-it.
 
