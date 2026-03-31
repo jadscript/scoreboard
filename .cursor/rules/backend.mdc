@@ -22,6 +22,7 @@ NestJS 11 REST API living at `apps/backend/`. Imports `@scoreboard/core` via wor
 |---|---|---|
 | `app` | `AppConfig` | `src/config/app.config.ts` |
 | `database` | `DatabaseConfig` | `src/config/database.config.ts` |
+| `auth` | `AuthConfig` | `src/config/auth.config.ts` |
 
 ### Consuming config in a service or controller
 
@@ -54,6 +55,34 @@ Always use the typed namespace getter (`configService.get<T>('namespace')`), nev
 | `CORS_ENABLED` | boolean | `true` | no | Enable/disable CORS globally |
 | `CORS_ORIGINS` | string (comma-separated URLs) | `http://localhost:5173` | no | Allowed CORS origins |
 | `DATABASE_URL` | PostgreSQL URI | — | **yes** | Full connection string |
+| `KEYCLOAK_URL` | HTTP(S) URI | — | **yes** | Keycloak base URL (no trailing slash; same realm as the frontend) |
+| `KEYCLOAK_REALM` | string | — | **yes** | Keycloak realm name |
+| `KEYCLOAK_CLIENT_ID` | string | — | **yes** | Client ID of the **API** client in Keycloak (this project uses **`api-cli`** — see section **Keycloak client `api-cli` setup** below). Separate from the SPA public client (`VITE_KEYCLOAK_CLIENT`, e.g. `web-cli`). |
+| `KEYCLOAK_CLIENT_SECRET` | string | — | **yes** | Client secret from Keycloak Admin → Clients → Credentials (`keycloak-connect` requires a secret value at init) |
+| `KEYCLOAK_POLICY_ENFORCEMENT` | `permissive \| enforcing` | `permissive` | no | `permissive` allows requests when no resource matches; switch to `enforcing` when authorization is fully modeled |
+| `KEYCLOAK_TOKEN_VALIDATION` | `online \| offline` | `online` | no | `online` validates with Keycloak; `offline` uses cached JWKS |
+
+### Authentication (Keycloak)
+
+- **Module:** `AuthModule` (`src/auth/auth.module.ts`) imports `KeycloakConnectModule` from `nest-keycloak-connect` and registers **global** guards: `AuthGuard`, `ResourceGuard`, `RoleGuard` (via `APP_GUARD`).
+- **Config:** `KeycloakConfigModule` exports `KeycloakConfigService`, which implements `KeycloakConnectOptionsFactory` and reads the `auth` namespace from `ConfigService`. The adapter is configured with `bearerOnly: true` (resource server — validates JWTs from callers such as the SPA).
+- **Public routes:** use `@Public()` from `nest-keycloak-connect` on handlers that must stay unauthenticated (e.g. `GET /` for health/smoke).
+- **Protected routes:** default — no decorator required. Use `@Roles()`, `@Resource()`, `@Scopes()` when you model Keycloak authorization (see package README).
+
+### Keycloak client `api-cli` setup
+
+The Nest adapter (`keycloak-connect`) needs a **dedicated confidential client** in the same realm as the SPA. Use client ID **`api-cli`** (set `KEYCLOAK_CLIENT_ID=api-cli`). The browser still logs in via the **public** SPA client (`VITE_KEYCLOAK_CLIENT`, e.g. `web-cli`); `api-cli` is only for the backend’s connection to Keycloak (token validation / JWKS), not for user login redirects.
+
+In **Keycloak Admin** (realm = `KEYCLOAK_REALM`, e.g. `scoreboard`):
+
+1. **Clients** → **Create client**.
+2. **Client ID**: `api-cli` → **Next**.
+3. Turn **Client authentication** **On** (confidential client) so Keycloak issues a **Client secret** — required for `KEYCLOAK_CLIENT_SECRET`.
+4. **Save**.
+5. Open the **Credentials** tab → copy **Client secret** → set `KEYCLOAK_CLIENT_SECRET` in the backend env (never commit real secrets; use `.env.development.local` or your secret manager).
+6. **Login settings** (optional for a pure resource server): if the admin UI forces redirect URIs, you can use a placeholder such as `http://localhost:3000/*` or the API base URL; the API does not perform browser redirects for login — users authenticate via the SPA.
+
+If you see **invalid audience** or **wrong issuer** errors, check that tokens are issued for the same realm and that **client scopes** / **audience** mappers match your SPA + API expectations (Keycloak version-specific).
 
 ### Env file conventions
 
@@ -67,7 +96,7 @@ Always use the typed namespace getter (`configService.get<T>('namespace')`), nev
 ### Adding a new env var
 
 1. Add the variable to `validationSchema` in `src/config/validation.schema.ts` (Joi rule + default/required).
-2. Add the typed field to the appropriate config factory (`app.config.ts` or `database.config.ts`), or create a new namespace file and register it in `AppModule`.
+2. Add the typed field to the appropriate config factory (`app.config.ts`, `database.config.ts`, or `auth.config.ts`), or create a new namespace file and register it in `AppModule`.
 3. Add the variable with a placeholder value to `.env.example`.
 4. Add it with a safe default to `.env.development`.
 

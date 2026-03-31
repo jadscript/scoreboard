@@ -118,6 +118,7 @@ Uses `keycloak-js` directly (no `@react-keycloak/web`). The `AuthProvider` wraps
 - **`src/api/`** — axios instance with `baseURL` from `env.VITE_API_URL`; each request adds `Authorization: Bearer <Keycloak access token>`.
 - **`src/queries/`** — TanStack Query hooks (e.g. `usePlayerMe` → `GET /players/me`). Prefer `enabled: Boolean(token)` so queries do not run without a token.
 - **Providers** — `main.tsx`: `QueryClientProvider` wraps `RouterProvider` and sits inside `AuthProvider` so hooks can read `useAuth().token`.
+- **API validation** — the Nest app (`apps/backend`) validates the same Bearer tokens using `nest-keycloak-connect` (`KeycloakConnectModule` + global guards). Env vars `KEYCLOAK_*` are validated with Joi at startup (see `.cursor/rules/backend.mdc`).
 
 Local persistence (RxDB) and remote API are separate: offline match/player data uses `infrastructure/persistence/`; REST integration uses `api/` + `queries/`.
 
@@ -130,6 +131,9 @@ apps/backend/src/
 ├── app.module.ts          ← Root NestJS module
 ├── app.controller.ts      ← Root controller
 ├── app.service.ts         ← Root service
+├── auth/                  ← Keycloak: AuthModule, KeycloakConfigModule, KeycloakConfigService
+├── config/                ← app, database, auth (+ Joi validation.schema)
+├── players/               ← Example feature module
 └── main.ts                ← Bootstrap entry point
 ```
 
@@ -176,4 +180,4 @@ GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 8. **Backend uses `paths` for core resolution** — `@scoreboard/core/*` is mapped to `../../packages/core/src/*` in `apps/backend/tsconfig.json`. This allows webpack and ts-node to resolve TypeScript source files without a compiled `dist/`. Jest uses the equivalent `moduleNameMapper`.
 9. **Environment variables are validated at startup** — both backend (`@nestjs/config` + Joi) and frontend (`infrastructure/env.ts` + Joi) crash immediately with descriptive errors if required env vars are missing or invalid. Never read `import.meta.env` or `process.env` directly — import from the validated `env` module instead.
 10. **Frontend auth uses `keycloak-js` directly** — no wrapper library. `AuthProvider` wraps the entire app with `onLoad: 'login-required'`. Use the `useAuth()` hook to access user info, roles, and logout.
-11. **Frontend ↔ Nest API** — Use `env.VITE_API_URL` (never raw `import.meta.env`); axios in `src/api/` for transport; TanStack Query in `src/queries/` for server cache; send `Authorization: Bearer` with `useAuth().token` on every backend request.
+11. **Frontend ↔ Nest API** — Use `env.VITE_API_URL` (never raw `import.meta.env`); axios in `src/api/` for transport; TanStack Query in `src/queries/` for server cache; send `Authorization: Bearer` with `useAuth().token` on every backend request. The backend validates tokens with Keycloak (`nest-keycloak-connect`); configure `KEYCLOAK_*` env vars (see `backend.mdc`).
