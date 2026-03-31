@@ -126,6 +126,11 @@ Docker image: `apps/auth/Dockerfile` — extends `quay.io/keycloak/keycloak:26.5
 ```
 apps/frontend/src/
 ├── infrastructure/
+│   ├── env.ts                         # Joi validation — app crashes if envs are missing
+│   ├── auth/
+│   │   ├── keycloak.ts                # Keycloak singleton (reads validated env)
+│   │   ├── AuthContext.ts             # React context + types (AuthUser, AuthContextValue)
+│   │   └── KeycloakProvider.tsx       # AuthProvider — init, token refresh (3 layers), loading/error
 │   └── persistence/
 │       ├── database.ts                # RxDB singleton (IndexedDB via Dexie)
 │       ├── match.schema.ts            # JSON Schema for the match collection
@@ -133,7 +138,8 @@ apps/frontend/src/
 │       ├── rxdb-match.repository.ts   # IMatchRepository → RxDB + IndexedDB
 │       └── rxdb-player.repository.ts  # IPlayerRepository → RxDB + IndexedDB
 ├── hooks/
-│   └── useScoreboard.ts           # keyboard input + score state (UI bridge)
+│   ├── useScoreboard.ts           # keyboard input + score state (UI bridge)
+│   └── useAuth.ts                 # access auth context (user, roles, logout)
 ├── pages/
 │   ├── players/                   # Player management
 │   ├── Login.tsx
@@ -299,6 +305,52 @@ cd apps/auth
 # edit VERSION with the new version, commit, then:
 git tag -a "@scoreboard/auth@$(cat VERSION)" -m "@scoreboard/auth v$(cat VERSION)"
 git push origin "@scoreboard/auth@$(cat VERSION)"
+```
+
+## Frontend Configuration
+
+The frontend uses Joi to validate environment variables at startup. The app **crashes immediately** with a descriptive error if any required variable is missing or invalid — no silent fallback.
+
+### Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_KEYCLOAK_URL` | **yes** | Keycloak base URL (e.g. `http://0.0.0.0:8080/`) |
+| `VITE_KEYCLOAK_REALM` | **yes** | Keycloak realm name |
+| `VITE_KEYCLOAK_CLIENT` | **yes** | Keycloak client ID for the frontend |
+
+### Env file conventions
+
+| File | Committed | Purpose |
+|---|---|---|
+| `.env.example` | yes | Template — reference for all variables |
+| `.env` | **no** (gitignored) | Actual values for local development |
+
+### Local setup
+
+```bash
+cd apps/frontend
+cp .env.example .env
+# edit .env with your Keycloak values
+pnpm dev
+```
+
+### Authentication (Keycloak)
+
+The entire application is protected by Keycloak using `onLoad: 'login-required'` — no route renders before the user is authenticated. Token refresh uses a three-layer strategy:
+
+1. **Proactive interval** — `setInterval` every 60s calls `updateToken(70)`
+2. **`onTokenExpired` callback** — reactive fallback calls `updateToken(30)`
+3. **Visibility change** — refreshes when the browser tab regains focus
+
+If the refresh token expires, the user is redirected to the Keycloak login page.
+
+Use the `useAuth()` hook in any component:
+
+```tsx
+import { useAuth } from '../hooks/useAuth'
+
+const { user, roles, hasRole, logout, token } = useAuth()
 ```
 
 ## Infrastructure (Docker Compose)

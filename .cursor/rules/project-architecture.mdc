@@ -72,19 +72,40 @@ packages/core/src/
 
 ```
 apps/frontend/src/
-├── infrastructure/       ← Concrete adapters (RxDB + IndexedDB)
-│   └── persistence/
+├── infrastructure/
+│   ├── env.ts                  ← Joi env validation — app crashes if envs are missing
+│   ├── auth/
+│   │   ├── keycloak.ts         ← Keycloak singleton (reads validated env)
+│   │   ├── AuthContext.ts      ← React context + types (AuthUser, AuthContextValue)
+│   │   └── KeycloakProvider.tsx ← AuthProvider — init, 3-layer token refresh, loading/error
+│   └── persistence/            ← Concrete adapters (RxDB + IndexedDB)
 │       ├── database.ts
 │       ├── match.schema.ts
 │       ├── match.serializer.ts
 │       ├── rxdb-match.repository.ts
 │       └── rxdb-player.repository.ts
 ├── hooks/                ← React custom hooks (bridge application → UI)
+│   ├── useScoreboard.ts
+│   └── useAuth.ts        ← Access auth context (user, roles, logout)
 ├── pages/                ← Route-level components (Login, Scoreboard, Players)
 └── router.tsx            ← TanStack Router route tree
 ```
 
 Imports from `@scoreboard/core` use the package alias (e.g. `import { Match } from '@scoreboard/core/domain/match.aggregate'`).
+
+### Environment variables (Joi validation)
+
+All frontend env vars are validated at startup via `infrastructure/env.ts`. The app **crashes immediately** if a required variable is missing. Variables must be prefixed with `VITE_` (Vite convention). See `.env.example` for the template.
+
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_KEYCLOAK_URL` | **yes** | Keycloak base URL |
+| `VITE_KEYCLOAK_REALM` | **yes** | Keycloak realm name |
+| `VITE_KEYCLOAK_CLIENT` | **yes** | Keycloak client ID |
+
+### Authentication (Keycloak)
+
+Uses `keycloak-js` directly (no `@react-keycloak/web`). The `AuthProvider` wraps the entire app with `onLoad: 'login-required'` — no route renders before authentication. Token refresh uses three layers: proactive interval (60s), `onTokenExpired` callback, and `visibilitychange` listener. Use `useAuth()` hook to access user info, roles, and logout.
 
 ## App: `apps/backend` (`@scoreboard/backend`)
 
@@ -136,3 +157,5 @@ GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 6. **Tests live in `__tests__/`** folders at the same level as the file they test, inside `packages/core/src/`.
 7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`, `feat(backend):`, `feat(auth):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
 8. **Backend uses `paths` for core resolution** — `@scoreboard/core/*` is mapped to `../../packages/core/src/*` in `apps/backend/tsconfig.json`. This allows webpack and ts-node to resolve TypeScript source files without a compiled `dist/`. Jest uses the equivalent `moduleNameMapper`.
+9. **Environment variables are validated at startup** — both backend (`@nestjs/config` + Joi) and frontend (`infrastructure/env.ts` + Joi) crash immediately with descriptive errors if required env vars are missing or invalid. Never read `import.meta.env` or `process.env` directly — import from the validated `env` module instead.
+10. **Frontend auth uses `keycloak-js` directly** — no wrapper library. `AuthProvider` wraps the entire app with `onLoad: 'login-required'`. Use the `useAuth()` hook to access user info, roles, and logout.

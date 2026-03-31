@@ -18,6 +18,8 @@
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-router": "^1.167.0",
     "dexie": "^4.3.0",
+    "joi": "^18.0.2",
+    "keycloak-js": "^26.2.3",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

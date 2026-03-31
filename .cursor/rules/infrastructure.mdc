@@ -1,6 +1,6 @@
 ---
-description: Infrastructure layer — RxDB/IndexedDB persistence, serialization, database setup
-globs: apps/frontend/src/infrastructure/**/*.ts
+description: Infrastructure layer — env validation, auth (Keycloak), RxDB/IndexedDB persistence, serialization
+globs: apps/frontend/src/infrastructure/**/*.ts,apps/frontend/src/infrastructure/**/*.tsx
 alwaysApply: false
 ---
 
@@ -12,6 +12,11 @@ Concrete adapters that satisfy the ports defined in the application layer. No do
 
 ```
 apps/frontend/src/infrastructure/
+├── env.ts                        # Joi validation — crashes at startup if envs are missing
+├── auth/
+│   ├── keycloak.ts               # Keycloak singleton (reads validated env)
+│   ├── AuthContext.ts            # React context + types (AuthUser, AuthContextValue)
+│   └── KeycloakProvider.tsx      # AuthProvider — init, 3-layer token refresh, loading/error
 └── persistence/
     ├── database.ts               # Creates and exports the RxDB singleton
     ├── match.schema.ts           # RxDB/JSON Schema for the match collection
@@ -20,6 +25,34 @@ apps/frontend/src/infrastructure/
     ├── player.schema.ts          # RxDB/JSON Schema for the player collection
     └── rxdb-player.repository.ts # IPlayerRepository implemented with RxDB + IndexedDB
 ```
+
+## Environment Validation
+
+`env.ts` validates all `VITE_*` env vars with Joi at module load time. If validation fails, a descriptive error is thrown and the app does not render. Always import env vars from `env.ts` — never read `import.meta.env` directly.
+
+```typescript
+import { env } from '../env'
+// env.VITE_KEYCLOAK_URL, env.VITE_KEYCLOAK_REALM, env.VITE_KEYCLOAK_CLIENT
+```
+
+### Adding a new frontend env var
+
+1. Add the Joi rule to `infrastructure/env.ts` (schema + `Env` interface).
+2. Add the variable with a placeholder to `.env.example`.
+3. Add it to your local `.env`.
+
+## Authentication (Keycloak)
+
+Uses `keycloak-js` v26 directly. The `AuthProvider` (in `main.tsx`) wraps the entire app with `onLoad: 'login-required'` — no route renders before the user is authenticated.
+
+Token refresh uses three layers:
+1. **Proactive interval** — `setInterval` every 60s calls `updateToken(70)`
+2. **`onTokenExpired` callback** — reactive fallback calls `updateToken(30)`
+3. **`visibilitychange` listener** — refreshes when the tab regains focus
+
+If the refresh token is also expired, the user is redirected to the Keycloak login page.
+
+Use the `useAuth()` hook in any component to access `user`, `roles`, `hasRole()`, `hasResourceRole()`, `logout()`, and `token`.
 
 ## Storage: RxDB + Dexie (IndexedDB)
 

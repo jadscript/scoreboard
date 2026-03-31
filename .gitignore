@@ -13,7 +13,9 @@ dist
 dist-ssr
 *.local
 
-# Production env files — never commit real secrets
+# Env files — never commit real secrets
+.env
+.env.local
 .env.prod
 .env.production
 
