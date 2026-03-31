@@ -18,13 +18,14 @@
 # ── Stage 2: Keycloak ─────────────────────────────────────────────────────
 FROM quay.io/keycloak/keycloak:26.5.6
 
-# Custom themes — add FreeMarker templates under themes/<theme-name>/
-COPY themes/ /opt/keycloak/themes/
+# Custom themes — uncomment when themes/<theme-name>/ exists:
+# COPY themes/ /opt/keycloak/themes/
 
-# Custom providers (SPIs / plugins) — compiled JARs go here.
-# When using the Maven builder stage above, replace with:
-#   COPY --from=builder /build/target/*.jar /opt/keycloak/providers/
-COPY providers/ /opt/keycloak/providers/
+# Custom providers (SPIs / plugins) — uncomment when JARs are ready:
+# COPY providers/ /opt/keycloak/providers/
+#
+# When using the Maven builder stage above, use instead:
+# COPY --from=builder /build/target/*.jar /opt/keycloak/providers/
 
 # Rebuild the optimised Keycloak image with the added providers/themes.
 RUN /opt/keycloak/bin/kc.sh build
