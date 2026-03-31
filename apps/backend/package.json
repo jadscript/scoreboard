@@ -26,6 +26,8 @@
     "@nestjs/platform-express": "^11.0.1",
     "@scoreboard/core": "workspace:*",
     "joi": "^18.0.2",
+    "keycloak-connect": "^26.1.1",
+    "nest-keycloak-connect": "2.0.0-alpha.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

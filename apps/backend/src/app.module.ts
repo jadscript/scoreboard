@@ -1,13 +1,13 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { appConfig } from './config/app.config';
+import type { AppConfig } from './config/app.config';
+import { authConfig } from './config/auth.config';
 import { databaseConfig } from './config/database.config';
 import { validationSchema } from './config/validation.schema';
-import { OnModuleInit } from '@nestjs/common';
-import { AppConfig } from './config/app.config';
-import { Logger } from '@nestjs/common';
+import { AuthModule } from './auth/auth.module';
 import { PlayersModule } from './players/players.module';
 
 @Module({
@@ -19,9 +19,10 @@ import { PlayersModule } from './players/players.module';
         `.env.${process.env.NODE_ENV ?? 'development'}`,
         '.env',
       ],
-      load: [appConfig, databaseConfig],
+      load: [appConfig, databaseConfig, authConfig],
       validationSchema,
     }),
+    AuthModule,
     PlayersModule,
   ],
   controllers: [AppController],

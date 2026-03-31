@@ -14,4 +14,20 @@ export const validationSchema = Joi.object({
   DATABASE_URL: Joi.string()
     .uri({ scheme: ['postgresql', 'postgres'] })
     .required(),
+
+  KEYCLOAK_URL: Joi.string().uri().required(),
+
+  KEYCLOAK_REALM: Joi.string().min(1).required(),
+
+  KEYCLOAK_CLIENT_ID: Joi.string().min(1).required(),
+
+  KEYCLOAK_CLIENT_SECRET: Joi.string().min(1).required(),
+
+  KEYCLOAK_POLICY_ENFORCEMENT: Joi.string()
+    .valid('permissive', 'enforcing')
+    .default('permissive'),
+
+  KEYCLOAK_TOKEN_VALIDATION: Joi.string()
+    .valid('online', 'offline')
+    .default('online'),
 });
