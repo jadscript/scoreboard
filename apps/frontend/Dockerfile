@@ -37,6 +37,7 @@ RUN pnpm turbo build --filter=@scoreboard/frontend
 # ── Stage 4: Serve ───────────────────────────────────────────────────────────
 FROM nginx:stable-alpine
 RUN rm -rf /usr/share/nginx/html/*
+COPY --from=pruner /app/apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
