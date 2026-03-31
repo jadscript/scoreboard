@@ -16,7 +16,7 @@ export class CreatePlayerHandler
   async execute(input: CreatePlayerInput): Promise<CreatePlayerOutput> {
     const player = Player.create(
       input.name,
-      input.email,
+      input.userId,
       input.gender,
       input.whatsapp,
       input.photoUrl ?? null,

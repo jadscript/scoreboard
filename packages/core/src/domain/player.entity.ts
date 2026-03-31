@@ -5,7 +5,7 @@ export type { Gender }
 
 interface PlayerProps {
   name: string
-  email: string
+  userId: string
   gender: Gender
   whatsapp: string
   photoUrl: string | null
@@ -18,31 +18,31 @@ export class Player extends Entity<PlayerProps> {
 
   static create(
     name: string,
-    email: string,
+    userId: string,
     gender: Gender,
     whatsapp: string,
     photoUrl: string | null = null,
   ): Player {
-    return new Player({ name, email, gender, whatsapp, photoUrl })
+    return new Player({ name, userId, gender, whatsapp, photoUrl })
   }
 
   static restore(
     id: string,
     name: string,
-    email: string,
+    userId: string,
     gender: Gender,
     whatsapp: string,
     photoUrl: string | null,
   ): Player {
-    return new Player({ name, email, gender, whatsapp, photoUrl }, id)
+    return new Player({ name, userId, gender, whatsapp, photoUrl }, id)
   }
 
   get name(): string {
     return this.props.name
   }
 
-  get email(): string {
-    return this.props.email
+  get userId(): string {
+    return this.props.userId
   }
 
   get gender(): Gender {

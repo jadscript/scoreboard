@@ -17,7 +17,7 @@ export class UpdatePlayerHandler implements ICommandHandler<UpdatePlayerInput> {
     const updated = Player.restore(
       input.playerId,
       input.name,
-      input.email,
+      existing.userId,
       input.gender,
       input.whatsapp,
       input.photoUrl ?? null,

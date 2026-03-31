@@ -3,7 +3,7 @@ import type { GameType, Gender, MatchStatus, MatchType, PointScorer } from '../.
 export interface PlayerDto {
   id: string
   name: string
-  email: string
+  userId: string
   gender: Gender
   whatsapp: string
   photoUrl: string | null
