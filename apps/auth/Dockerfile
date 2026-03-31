@@ -27,9 +27,12 @@ FROM quay.io/keycloak/keycloak:26.5.6
 # When using the Maven builder stage above, use instead:
 # COPY --from=builder /build/target/*.jar /opt/keycloak/providers/
 
-# Rebuild the optimised Keycloak image with the added providers/themes.
-RUN /opt/keycloak/bin/kc.sh build
+# Pre-bake runtime options so Keycloak won't re-build on every startup.
+RUN /opt/keycloak/bin/kc.sh build \
+    --db=postgres \
+    --health-enabled=true \
+    --metrics-enabled=true
 
 # The base image sets ENTRYPOINT ["/opt/keycloak/bin/kc.sh"].
-# Default to production mode — override with "start-dev" for local development.
-CMD ["start"]
+# --optimized skips the startup re-build since everything was compiled above.
+CMD ["start", "--optimized"]
