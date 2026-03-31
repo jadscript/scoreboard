@@ -25,7 +25,7 @@ services:
   keycloak:
     build:
       context: ./apps/auth
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     image: scoreboard-keycloak:dev
     container_name: scoreboard-keycloak
     restart: unless-stopped

@@ -29,3 +29,7 @@ FROM quay.io/keycloak/keycloak:26.5.6
 
 # Rebuild the optimised Keycloak image with the added providers/themes.
 RUN /opt/keycloak/bin/kc.sh build
+
+# The base image sets ENTRYPOINT ["/opt/keycloak/bin/kc.sh"].
+# Default to production mode — override with "start-dev" for local development.
+CMD ["start"]
