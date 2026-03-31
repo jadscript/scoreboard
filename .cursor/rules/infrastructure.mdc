@@ -32,7 +32,7 @@ apps/frontend/src/infrastructure/
 
 ```typescript
 import { env } from '../env'
-// env.VITE_KEYCLOAK_URL, env.VITE_KEYCLOAK_REALM, env.VITE_KEYCLOAK_CLIENT
+// env.VITE_KEYCLOAK_URL, env.VITE_KEYCLOAK_REALM, env.VITE_KEYCLOAK_CLIENT, env.VITE_API_URL
 ```
 
 ### Adding a new frontend env var
@@ -40,6 +40,11 @@ import { env } from '../env'
 1. Add the Joi rule to `infrastructure/env.ts` (schema + `Env` interface).
 2. Add the variable with a placeholder to `.env.example`.
 3. Add it to your local `.env`.
+4. For **production Docker builds** of the static app (`apps/frontend/Dockerfile`), add a matching `ARG VITE_*` in the `builder` stage and document it in the file header comment (`--build-arg ...`) whenever the variable must be baked into the bundle (same pattern as Keycloak and `VITE_API_URL`).
+
+## Remote HTTP API (NestJS)
+
+REST calls to the backend **do not** live under `infrastructure/` — they use `apps/frontend/src/api/` (axios, `env.VITE_API_URL`, Bearer from `useAuth().token`) and `apps/frontend/src/queries/` (TanStack Query). See `project-architecture.mdc` for the full picture.
 
 ## Authentication (Keycloak)
 
