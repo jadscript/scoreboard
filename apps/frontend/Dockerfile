@@ -1,5 +1,8 @@
 # Build context must be the monorepo root:
-#   docker build -f apps/frontend/Dockerfile .
+#   docker build -f apps/frontend/Dockerfile \
+#     --build-arg VITE_KEYCLOAK_URL=https://auth.example.com/ \
+#     --build-arg VITE_KEYCLOAK_REALM=scoreboard \
+#     --build-arg VITE_KEYCLOAK_CLIENT=client-web .
 
 FROM node:22-alpine AS base
 RUN corepack enable
@@ -22,9 +25,12 @@ COPY --from=pruner /app/out/json/ .
 RUN pnpm install --frozen-lockfile
 
 # ── Stage 3: Build ───────────────────────────────────────────────────────────
-# Copy source and run the build scoped to the frontend (Turborepo will also
-# build any upstream packages it depends on, e.g. @scoreboard/core).
+# Vite inlines VITE_* env vars at build time into the static JS bundle.
+# Pass them via --build-arg when building the image.
 FROM installer AS builder
+ARG VITE_KEYCLOAK_URL
+ARG VITE_KEYCLOAK_REALM
+ARG VITE_KEYCLOAK_CLIENT
 COPY --from=pruner /app/out/full/ .
 RUN pnpm turbo build --filter=@scoreboard/frontend
 
