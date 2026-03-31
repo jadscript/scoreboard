@@ -4,12 +4,14 @@ interface Env {
   VITE_KEYCLOAK_URL: string
   VITE_KEYCLOAK_REALM: string
   VITE_KEYCLOAK_CLIENT: string
+  VITE_API_URL: string
 }
 
 const schema = Joi.object<Env>({
   VITE_KEYCLOAK_URL: Joi.string().uri().required(),
   VITE_KEYCLOAK_REALM: Joi.string().min(1).required(),
   VITE_KEYCLOAK_CLIENT: Joi.string().min(1).required(),
+  VITE_API_URL: Joi.string().uri().required(),
 }).unknown(true)
 
 const { error, value } = schema.validate(import.meta.env, { abortEarly: false })
@@ -25,4 +27,5 @@ export const env: Env = {
   VITE_KEYCLOAK_URL: value.VITE_KEYCLOAK_URL,
   VITE_KEYCLOAK_REALM: value.VITE_KEYCLOAK_REALM,
   VITE_KEYCLOAK_CLIENT: value.VITE_KEYCLOAK_CLIENT,
+  VITE_API_URL: value.VITE_API_URL,
 }

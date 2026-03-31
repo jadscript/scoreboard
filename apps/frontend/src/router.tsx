@@ -2,8 +2,9 @@ import { createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/re
 import { LoginPage } from './pages/Login'
 import { ScoreboardPage } from './pages/scoreboard'
 import { PlayersPage } from './pages/players'
-import { GamePage } from './pages/game'
+// import { GamePage } from './pages/game'
 import { RankingPage } from './pages/ranking'
+import { HomePage } from './pages/home'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -12,7 +13,7 @@ const rootRoute = createRootRoute({
 const gameRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: GamePage,
+  component: HomePage,
 })
 
 const loginRoute = createRoute({
