@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 
 @Controller('players')
-export class PlayerController {
+export class PlayersController {
   constructor() {}
 
   @Get('/me')

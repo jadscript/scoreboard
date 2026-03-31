@@ -8,7 +8,7 @@ import { validationSchema } from './config/validation.schema';
 import { OnModuleInit } from '@nestjs/common';
 import { AppConfig } from './config/app.config';
 import { Logger } from '@nestjs/common';
-import { PlayerModule } from './player/player.module';
+import { PlayersModule } from './players/players.module';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { PlayerModule } from './player/player.module';
       load: [appConfig, databaseConfig],
       validationSchema,
     }),
-    PlayerModule,
+    PlayersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
