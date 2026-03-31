@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.13.0...@scoreboard/frontend@0.14.0) (2026-03-31)
+
+### Features
+
+* **auth:** :sparkles: update Keycloak configuration and add custom auth app details ([314ff6d](https://github.com/jadscript/scoreboard/commit/314ff6d305a4d72e0aa96e04c7a536515852c523))
+* **frontend:** :sparkles: implement environment variable validation with Joi and integrate Keycloak for authentication ([982fbce](https://github.com/jadscript/scoreboard/commit/982fbcecc59532560405b52d7b0b846ba4c9a724))
+
 ## [0.13.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.12.0...@scoreboard/frontend@0.13.0) (2026-03-30)
 
 ### Bug Fixes
