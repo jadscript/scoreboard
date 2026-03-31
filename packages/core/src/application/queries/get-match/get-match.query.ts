@@ -46,7 +46,7 @@ export class GetMatchHandler implements IQueryHandler<GetMatchInput, MatchDto> {
       players: team.players.map((p) => ({
         id: p.id,
         name: p.name,
-        email: p.email,
+        userId: p.userId,
         gender: p.gender,
         whatsapp: p.whatsapp,
         photoUrl: p.photoUrl,

@@ -22,7 +22,7 @@ function toDto(player: Player): PlayerDto {
   return {
     id: player.id,
     name: player.name,
-    email: player.email,
+    userId: player.userId,
     gender: player.gender,
     whatsapp: player.whatsapp,
     photoUrl: player.photoUrl,
