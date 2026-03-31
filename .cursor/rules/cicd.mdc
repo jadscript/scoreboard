@@ -17,7 +17,7 @@ alwaysApply: false
 
 Format: `type(scope): description`
 
-**Valid scopes:** `core` · `frontend` · `backend` · `shared` · `ci` · `deps` · `release`
+**Valid scopes:** `core` · `frontend` · `backend` · `auth` · `shared` · `ci` · `deps` · `release`
 
 | Type | Version bump |
 |---|---|
@@ -30,7 +30,11 @@ commitlint validates all commits in the PR range inside `ci.yml`. Release commit
 
 ## Per-package releases
 
-Each releasable package has its own `.release-it.json`. The workflow detects changes by path (`git log <last-tag>..HEAD -- <package-path>/`) and only runs release-it when relevant commits exist.
+The workflow detects changes by path (`git log <last-tag>..HEAD -- <package-path>/`) and only runs the release step when relevant commits exist.
+
+### Node.js packages (release-it)
+
+Each Node.js package has its own `.release-it.json`:
 
 | Package | Directory | Tag | Config |
 |---|---|---|---|
@@ -45,6 +49,14 @@ Per package, release-it:
 
 The decision of **whether** to release is made by the workflow path detection (`git log <last-tag>..HEAD -- <package-path>/`). The decision of **what version** to bump is made by `@release-it/conventional-changelog` reading all commits. This separation avoids false negatives where path-filtered commits are all `chore:` type and would otherwise prevent a release.
 
+### Non-Node.js packages (VERSION file)
+
+| Package | Directory | Tag | Version source |
+|---|---|---|---|
+| `@scoreboard/auth` | `apps/auth/` | `@scoreboard/auth@X.Y.Z` | `apps/auth/VERSION` |
+
+`@scoreboard/auth` is a Docker-only app (Keycloak). It does not use release-it or pnpm. The workflow reads the `VERSION` file, creates a git tag and a GitHub Release via `gh release create`. To release a new version, bump the `VERSION` file in your commit.
+
 ## Manual release
 
 ```bash
@@ -56,9 +68,18 @@ cd apps/frontend && pnpm run release
 
 # backend
 cd apps/backend && pnpm run release
+
 ```
 
-All commands open release-it's interactive prompt. Use `--ci` to run without prompts.
+All commands above open release-it's interactive prompt. Use `--ci` to run without prompts.
+
+For `@scoreboard/auth` (no release-it — just bump `VERSION` + tag):
+
+```bash
+cd apps/auth
+# edit VERSION with the new version, commit, then:
+git tag -a "@scoreboard/auth@$(cat VERSION)" -m "@scoreboard/auth v$(cat VERSION)"
+git push origin "@scoreboard/auth@$(cat VERSION)"
 
 ## Adding a new releasable package
 

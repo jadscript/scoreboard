@@ -109,3 +109,28 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release @scoreboard/auth
+        run: |
+          LAST_TAG=$(git tag -l "@scoreboard/auth@*" --sort=-version:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            CHANGED=1
+          else
+            CHANGED=$(git log "${LAST_TAG}..HEAD" --oneline -- apps/auth/ | wc -l | tr -d ' ')
+          fi
+          if [ "$CHANGED" -gt "0" ]; then
+            VERSION=$(cat apps/auth/VERSION)
+            TAG="@scoreboard/auth@${VERSION}"
+            if git rev-parse "$TAG" >/dev/null 2>&1; then
+              echo "Tag $TAG already exists — skipping"
+            else
+              echo "Releasing @scoreboard/auth v${VERSION}"
+              git tag -a "$TAG" -m "@scoreboard/auth v${VERSION}"
+              git push origin "$TAG"
+              gh release create "$TAG" --title "@scoreboard/auth v${VERSION}" --generate-notes --notes-start-tag "$LAST_TAG"
+            fi
+          else
+            echo "No changes in apps/auth — skipping"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

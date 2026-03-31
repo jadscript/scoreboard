@@ -34,7 +34,10 @@ services:
   # Runs in production mode (start) behind a TLS-terminating reverse proxy
   # (e.g. nginx, Traefik, Caddy). The proxy must forward X-Forwarded-* headers.
   keycloak:
-    image: keycloak/keycloak:26.5.5
+    build:
+      context: ./apps/auth
+      dockerfile: Dockerfile
+    image: scoreboard-keycloak:latest
     restart: always
     command: start
     environment:

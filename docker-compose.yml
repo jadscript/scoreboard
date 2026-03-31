@@ -23,7 +23,10 @@ services:
 
   # ── Keycloak ──────────────────────────────────────────────────────────────
   keycloak:
-    image: keycloak/keycloak:26.5.5
+    build:
+      context: ./apps/auth
+      dockerfile: Dockerfile
+    image: scoreboard-keycloak:dev
     container_name: scoreboard-keycloak
     restart: unless-stopped
     command: start-dev

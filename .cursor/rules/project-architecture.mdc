@@ -15,6 +15,7 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 |---|---|
 | Frontend framework | React 19 |
 | Backend framework | NestJS 11 |
+| Auth | Keycloak 26.5.6 (custom Docker image — `apps/auth/`) |
 | Language | TypeScript 5.9 |
 | Frontend build | Vite 8 |
 | Backend build | NestJS CLI (webpack) |
@@ -31,7 +32,8 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 scoreboard/                     ← workspace root
 ├── apps/
 │   ├── frontend/               ← Vite app (React + UI) (@scoreboard/frontend)
-│   └── backend/                ← NestJS API (@scoreboard/backend)
+│   ├── backend/                ← NestJS API (@scoreboard/backend)
+│   └── auth/                   ← Custom Keycloak image (@scoreboard/auth)
 ├── packages/
 │   ├── core/                   ← @scoreboard/core — DDD domain + application layer
 │   └── shared/                 ← shared code (future)
@@ -100,13 +102,29 @@ apps/backend/src/
 - `moduleNameMapper` in Jest config mirrors the same resolution for tests.
 - Dockerfile at `apps/backend/Dockerfile` builds a minimal production image using `turbo prune`.
 
+## App: `apps/auth` (`@scoreboard/auth`)
+
+Custom Keycloak 26.5.6 Docker image — **not a Node.js/TypeScript app**, not part of the pnpm workspace or Turborepo pipeline. Keycloak customizations (themes, providers) use FreeMarker templates and Java/Maven respectively.
+
+```
+apps/auth/
+├── Dockerfile              ← Extends quay.io/keycloak/keycloak:26.5.6
+├── VERSION                 ← Plain-text version (used by CI for git tags / GitHub Releases)
+├── themes/                 ← FreeMarker login/account/email themes
+└── providers/              ← Java SPI JARs (built via Maven, future)
+```
+
+- Both `docker-compose.yml` (dev) and `docker-compose.prod.yml` build from `apps/auth/Dockerfile` instead of using the upstream image directly.
+- Future Java providers will be compiled with Maven and the resulting JARs copied into the image at build time.
+- Versioned via `VERSION` file + git tags (`@scoreboard/auth@X.Y.Z`) + GitHub Releases — no release-it.
+
 ## CI/CD
 
 GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 
 - `ci.yml` — commitlint + check-types + test + build (triggers on PRs)
 - `release.yml` — CI + per-package release with path-based change detection (triggers on push to `main`)
-- Commits follow `type(scope): description` — scopes: `core`, `frontend`, `backend`, `shared`, `ci`, `deps`, `release`
+- Commits follow `type(scope): description` — scopes: `core`, `frontend`, `backend`, `auth`, `shared`, `ci`, `deps`, `release`
 
 ## Key Architectural Decisions
 
@@ -116,5 +134,5 @@ GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 4. **No parameter properties** in constructors — `erasableSyntaxOnly: true` in tsconfig. Use the Props pattern instead.
 5. **Factory methods** (`Entity.create()`, `Entity.restore()`) replace `new Entity(...)` calls from outside the class.
 6. **Tests live in `__tests__/`** folders at the same level as the file they test, inside `packages/core/src/`.
-7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`, `feat(backend):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
+7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`, `feat(backend):`, `feat(auth):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
 8. **Backend uses `paths` for core resolution** — `@scoreboard/core/*` is mapped to `../../packages/core/src/*` in `apps/backend/tsconfig.json`. This allows webpack and ts-node to resolve TypeScript source files without a compiled `dist/`. Jest uses the equivalent `moduleNameMapper`.

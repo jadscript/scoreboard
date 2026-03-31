@@ -8,6 +8,7 @@ Real-time beach tennis scoreboard application built with React, TypeScript and D
 |---|---|
 | **UI** | React 19, Tailwind CSS 4, TanStack Router |
 | **API** | NestJS 11 (REST) |
+| **Auth** | Keycloak 26.5.6 (custom Docker image) |
 | **Language** | TypeScript 5.9 (strict + `erasableSyntaxOnly`) |
 | **Frontend build** | Vite 8 |
 | **Backend build** | NestJS CLI (webpack) |
@@ -34,7 +35,8 @@ pnpm lint         # lint (via turbo)
 scoreboard/
 ├── apps/
 │   ├── frontend/              # Vite app (React + UI) (@scoreboard/frontend)
-│   └── backend/               # NestJS API (@scoreboard/backend)
+│   ├── backend/               # NestJS API (@scoreboard/backend)
+│   └── auth/                  # Custom Keycloak image (@scoreboard/auth)
 ├── packages/
 │   ├── core/                  # @scoreboard/core — DDD domain + application layer
 │   └── shared/                # shared code across apps (future)
@@ -102,6 +104,22 @@ apps/backend/src/
 ```
 
 Docker image: `apps/backend/Dockerfile` — multi-stage build via `turbo prune @scoreboard/backend`.
+
+### `apps/auth` (`@scoreboard/auth`)
+
+Custom Keycloak 26.5.6 Docker image. Allows adding login themes (FreeMarker), custom providers (Java SPIs), and startup scripts. Built entirely via Docker — no Node.js build step.
+
+```
+apps/auth/
+├── Dockerfile                 # Custom Keycloak image (multi-stage with optional Maven build)
+├── VERSION                    # Plain-text version (used by CI for git tags / GitHub Releases)
+├── themes/                    # FreeMarker login/account/email themes
+└── providers/                 # Compiled JAR providers (SPIs) or Maven source (future)
+```
+
+This is **not** a Node.js package — it is not part of the pnpm workspace or Turborepo pipeline. It is built entirely via Docker.
+
+Docker image: `apps/auth/Dockerfile` — extends `quay.io/keycloak/keycloak:26.5.6` with custom themes and providers.
 
 ### `apps/frontend`
 
@@ -242,7 +260,7 @@ This repository follows [Conventional Commits](https://www.conventionalcommits.o
 type(scope): description
 ```
 
-**Valid scopes:** `core`, `frontend`, `backend`, `shared`, `ci`, `deps`, `release`
+**Valid scopes:** `core`, `frontend`, `backend`, `auth`, `shared`, `ci`, `deps`, `release`
 
 | Type | Example | Version bump |
 |---|---|---|
@@ -260,8 +278,9 @@ Each package has independent tags and GitHub Releases:
 | `@scoreboard/core` | `@scoreboard/core@1.2.3` | `packages/core/.release-it.json` |
 | `@scoreboard/frontend` (frontend) | `@scoreboard/frontend@2.0.0` | `apps/frontend/.release-it.json` |
 | `@scoreboard/backend` | `@scoreboard/backend@1.0.0` | `apps/backend/.release-it.json` |
+| `@scoreboard/auth` | `@scoreboard/auth@0.1.0` | `apps/auth/VERSION` |
 
-A release is only triggered when there are commits since the last tag that touch the package directory. Each package's `CHANGELOG.md` is generated automatically.
+A release is only triggered when there are commits since the last tag that touch the package directory. Node.js packages use `release-it` (auto-generates `CHANGELOG.md`). `@scoreboard/auth` uses a plain `VERSION` file + git tags + GitHub Releases (no Node.js tooling).
 
 ### Manual release
 
@@ -274,13 +293,19 @@ cd apps/frontend && pnpm run release
 
 # backend only
 cd apps/backend && pnpm run release
+
+# auth (Keycloak) — bump VERSION file, then tag manually
+cd apps/auth
+# edit VERSION with the new version, commit, then:
+git tag -a "@scoreboard/auth@$(cat VERSION)" -m "@scoreboard/auth v$(cat VERSION)"
+git push origin "@scoreboard/auth@$(cat VERSION)"
 ```
 
 ## Infrastructure (Docker Compose)
 
 ### Development
 
-Starts PostgreSQL and Keycloak locally. Credentials are hardcoded for convenience.
+Starts PostgreSQL and a custom Keycloak image (built from `apps/auth/Dockerfile`) locally. Credentials are hardcoded for convenience.
 
 ```bash
 docker compose up -d          # start
