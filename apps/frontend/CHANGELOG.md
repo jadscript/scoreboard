@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.16.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.15.0...@scoreboard/frontend@0.16.0) (2026-03-31)
+
 ## [0.15.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.14.0...@scoreboard/frontend@0.15.0) (2026-03-31)
 
 ### Features
