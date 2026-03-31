@@ -378,7 +378,7 @@ Then configure SMTP in the Keycloak Admin Console:
 | From | `noreply@yourdomain.com` (must match your verified Resend domain) |
 | From Display Name | `Scoreboard` (or any name you prefer) |
 | Host | `smtp.resend.com` |
-| Port | `587` |
+| Port | `587` (local) / `2587` (production — see note below) |
 | Encryption | Enable **StartTLS** |
 | Authentication | **Enabled** |
 | Username | `resend` |
@@ -387,13 +387,13 @@ Then configure SMTP in the Keycloak Admin Console:
 3. Click **Test connection** to verify that Keycloak can send emails through Resend
 4. Save
 
-> **Tip:** Resend also supports ports `25`, `465` (implicit TLS), and `2587`. Port `587` with StartTLS is recommended.
+> **Production (Railway / cloud providers):** Use port **`2587`** instead of `587`. Most cloud providers (Railway, Render, Fly.io, etc.) block outbound traffic on standard SMTP ports (25, 465, 587) to prevent spam. Resend's port `2587` is an alternative that bypasses this restriction. You will get a `SocketTimeoutException: Connect timed out` if the port is blocked.
+>
+> **Local development:** Port `587` with StartTLS works fine.
 
-### Configuring the Email OTP authentication flow
+### Configuring the Magic Link authentication flow
 
 After the first boot with the provider installed, set up the passwordless login flow.
-
-> **Important:** The Email OTP authenticator does **not** have its own email form. It requires a **Username Form** step before it to collect the email and identify the user. Without it, you'll get an `NullPointerException` ("getUser() is null") and a 500 error page.
 
 **1. Create the flow**
 
@@ -403,32 +403,29 @@ After the first boot with the provider installed, set up the passwordless login 
 
 **2. Add the steps**
 
-Add executions and a sub-flow in this order:
+Add executions (no sub-flow needed):
 
 | Step | Type | Requirement |
 |---|---|---|
 | **Cookie** | execution | `ALTERNATIVE` |
-| **Email OTP Login** | sub-flow | `ALTERNATIVE` |
-| **Username Form** | execution (inside sub-flow) | `REQUIRED` |
-| **Email OTP** | execution (inside sub-flow) | `REQUIRED` |
+| **Magic Link** | execution | `ALTERNATIVE` |
 
 The structure should look like this:
 
 ```
 Email OTP Browser
-├── Cookie                        (ALTERNATIVE)
-└── Email OTP Login (sub-flow)    (ALTERNATIVE)
-    ├── Username Form             (REQUIRED)
-    └── Email OTP                 (REQUIRED)
+├── Cookie        (ALTERNATIVE)
+└── Magic Link    (ALTERNATIVE)
 ```
 
-**3. Configure Email OTP**
+**3. Configure Magic Link**
 
-Click the gear icon on the **Email OTP** step and set:
+Click the gear icon on the **Magic Link** step and set:
 
 | Option | Value |
 |---|---|
 | Force create user | **ON** — auto-registers users that don't exist |
+| Allow magic link to be reusable | **OFF** (recommended for security) |
 
 **4. Set as default**
 
@@ -436,7 +433,9 @@ Click the gear icon on the **Email OTP** step and set:
 2. Set **Browser Flow** to `Email OTP Browser`
 3. Save
 
-**Flow behavior:** The user enters their email in the Username Form. If the user exists, the Email OTP sends a 6-digit code. If the user does not exist and "Force create user" is ON, the Email OTP creates the user and sends the code. The user enters the code to authenticate.
+**Flow behavior:** The user enters their email. If the user exists, a magic link is sent to their email. If the user does not exist and "Force create user" is ON, the user is created automatically and the magic link is sent. The user clicks the link and is authenticated.
+
+> **Why Magic Link instead of Email OTP?** Keycloak's flow engine does not support mixing `REQUIRED` and `ALTERNATIVE` executions at the same level — alternative steps are silently ignored. The Email OTP authenticator requires a preceding Username Form step to collect the email, but Username Form only allows `REQUIRED` mode and rejects unknown users. The Magic Link authenticator has its own email form built-in and handles user creation natively, making it a simpler and more reliable solution.
 
 ## Infrastructure (Docker Compose)
 
