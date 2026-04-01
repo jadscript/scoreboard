@@ -35,13 +35,19 @@ RUN pnpm --filter=@scoreboard/backend deploy --prod /deploy
 FROM node:22-alpine AS runner
 WORKDIR /app
 
+# Prisma engines + OpenSSL em Alpine
+RUN apk add --no-cache openssl
+
 ENV NODE_ENV=production
 
 # node_modules from pnpm deploy (no symlinks — fully self-contained)
 COPY --from=builder /deploy/node_modules ./node_modules
 # compiled output from nest build
 COPY --from=builder /app/apps/backend/dist ./dist
+# Prisma schema, migrations e config (CLI + runtime de migrações)
+COPY --from=builder /app/apps/backend/prisma ./prisma
+COPY --from=builder /app/apps/backend/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 3000
 
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/src/main.js"]

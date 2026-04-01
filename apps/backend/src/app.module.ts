@@ -8,6 +8,7 @@ import { authConfig } from './config/auth.config';
 import { databaseConfig } from './config/database.config';
 import { validationSchema } from './config/validation.schema';
 import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { PlayersModule } from './players/players.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { PlayersModule } from './players/players.module';
       validationSchema,
     }),
     AuthModule,
+    PrismaModule,
     PlayersModule,
   ],
   controllers: [AppController],

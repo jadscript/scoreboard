@@ -1,0 +1,26 @@
+generator client {
+  provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  moduleFormat  = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  male
+  female
+  unknown
+}
+
+model Player {
+  id       String  @id @default(uuid())
+  name     String
+  userId   String  @unique @map("user_id")
+  gender   Gender
+  whatsapp String?
+  photoUrl String? @map("photo_url")
+
+  @@map("players")
+}
