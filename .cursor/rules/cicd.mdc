@@ -13,6 +13,8 @@ alwaysApply: false
 | `ci.yml` | Pull Request → `main` | `ci`: commitlint + check-types + test + build |
 | `release.yml` | Push → `main` | `ci` → `release` (detects changes, runs release-it per package) |
 
+**Prisma migrations:** the default PR workflow does **not** spin up PostgreSQL or run `prisma migrate deploy`. Migrations are applied when the **backend Docker image** starts (or when you run `pnpm run prisma:deploy` against an environment manually). To validate migrations on every PR, add a dedicated job with a Postgres service and `migrate deploy` — that is optional and not part of the minimal pipeline.
+
 ## Conventional Commits
 
 Format: `type(scope): description`
@@ -80,6 +82,7 @@ cd apps/auth
 # edit VERSION with the new version, commit, then:
 git tag -a "@scoreboard/auth@$(cat VERSION)" -m "@scoreboard/auth v$(cat VERSION)"
 git push origin "@scoreboard/auth@$(cat VERSION)"
+```
 
 ## Adding a new releasable package
 

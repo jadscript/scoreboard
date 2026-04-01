@@ -12,7 +12,8 @@ Real-time beach tennis scoreboard application built with React, TypeScript and D
 | **Language** | TypeScript 5.9 (strict + `erasableSyntaxOnly`) |
 | **Frontend build** | Vite 8 |
 | **Backend build** | NestJS CLI (webpack) |
-| **Database** | RxDB 16 + Dexie 4 (IndexedDB — persists across sessions) |
+| **Client database** | RxDB 16 + Dexie 4 (IndexedDB — matches/players local cache) |
+| **API database** | PostgreSQL + Prisma 7 (`apps/backend` — schema `prisma/schema.prisma`, migrations at container start) |
 | **Tests** | Vitest 4 (frontend/core) · Jest 30 (backend) |
 | **Package manager** | pnpm workspaces |
 | **Monorepo** | Turborepo |
@@ -89,21 +90,28 @@ packages/core/src/
 
 ### `apps/backend` (`@scoreboard/backend`)
 
-NestJS 11 REST API. Consumes `@scoreboard/core` via workspace dependency — path aliases in `tsconfig.json` resolve the TypeScript source directly without a compiled `dist/`.
+NestJS 11 REST API. Consumes `@scoreboard/core` via workspace dependency — path aliases in `tsconfig.json` resolve the TypeScript source directly without a compiled `dist/`. Relational data uses **Prisma** against PostgreSQL (`DATABASE_URL`).
 
 ```
-apps/backend/src/
-├── config/
-│   ├── app.config.ts          # Namespace "app" — port, NODE_ENV, CORS
-│   ├── database.config.ts     # Namespace "database" — DATABASE_URL
-│   └── validation.schema.ts   # Joi schema — validates envs at startup
-├── app.module.ts              # Root NestJS module (imports ConfigModule globally)
-├── app.controller.ts          # Root controller
-├── app.service.ts             # Root service
-└── main.ts                    # Bootstrap — CORS + port via ConfigService
+apps/backend/
+├── prisma/
+│   ├── schema.prisma          # Models (e.g. Player), enums (Gender)
+│   └── migrations/            # Versioned SQL — applied with migrate dev / migrate deploy
+├── prisma.config.ts           # Prisma 7 configuration
+└── src/
+    ├── config/
+    │   ├── app.config.ts          # Namespace "app" — port, NODE_ENV, CORS
+    │   ├── database.config.ts     # Namespace "database" — DATABASE_URL
+    │   └── validation.schema.ts   # Joi schema — validates envs at startup
+    ├── prisma/                    # PrismaModule + PrismaService (adapter-pg)
+    ├── generated/prisma/          # Generated client (prisma generate)
+    ├── app.module.ts              # Root NestJS module
+    ├── app.controller.ts
+    ├── app.service.ts
+    └── main.ts                    # Bootstrap — CORS, port, shutdown hooks
 ```
 
-Docker image: `apps/backend/Dockerfile` — multi-stage build via `turbo prune @scoreboard/backend`.
+Docker image: `apps/backend/Dockerfile` — multi-stage build via `turbo prune @scoreboard/backend`; the runtime image runs **`prisma migrate deploy`** before starting the Node process so the database schema is up to date.
 
 ### `apps/auth` (`@scoreboard/auth`)
 
@@ -159,10 +167,12 @@ The project follows **DDD (Domain-Driven Design)** with **Clean Architecture** l
                           ↑                          ↑
                   IMatchRepository (port)       pure TypeScript
                           ↑
-                  [Infrastructure: RxDB + IndexedDB]
+        [Infrastructure: RxDB + IndexedDB (browser)]
+                          │
+        [Nest API + Prisma + PostgreSQL (server)]
 ```
 
-Data persists across browser sessions in **IndexedDB** (via RxDB + Dexie). Each `Match` is stored as a single JSON document and fully reconstructed as a domain aggregate on load using `restore()` factory methods.
+On the **client**, data can persist across browser sessions in **IndexedDB** (via RxDB + Dexie): each `Match` is stored as a JSON document and rehydrated with `restore()`. The **backend** stores authoritative **Player** rows (and future relational data) in **PostgreSQL** via Prisma; the SPA talks to the API over HTTPS with a Bearer token (see `apps/backend/README.md` and `.cursor/rules/backend.mdc` for Prisma commands and Docker startup).
 
 ### Domain Entities
 

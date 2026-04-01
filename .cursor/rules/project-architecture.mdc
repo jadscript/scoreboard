@@ -23,6 +23,8 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 | Routing | TanStack Router (code-based, `apps/frontend/src/router.tsx`) |
 | Server state / HTTP cache | TanStack Query (`@tanstack/react-query`) — queries/mutations against the Nest API |
 | HTTP client (backend) | axios (`apps/frontend/src/api/`) — base URL from `env.VITE_API_URL`, Bearer from `useAuth().token` |
+| Client-side persistence | RxDB 16 + Dexie 4 (IndexedDB — matches, players offline / local cache) |
+| API database | PostgreSQL + Prisma 7 (`apps/backend`) — migrations, `PrismaService`, generated client under `src/generated/prisma/` |
 | Testing | Vitest 4 (frontend/core) · Jest 30 (backend) |
 | Package manager | pnpm workspaces |
 | Monorepo | Turborepo |
@@ -120,26 +122,33 @@ Uses `keycloak-js` directly (no `@react-keycloak/web`). The `AuthProvider` wraps
 - **Providers** — `main.tsx`: `QueryClientProvider` wraps `RouterProvider` and sits inside `AuthProvider` so hooks can read `useAuth().token`.
 - **API validation** — the Nest app (`apps/backend`) validates the same Bearer tokens using `nest-keycloak-connect` (`KeycloakConnectModule` + global guards). Env vars `KEYCLOAK_*` are validated with Joi at startup (see `.cursor/rules/backend.mdc`).
 
-Local persistence (RxDB) and remote API are separate: offline match/player data uses `infrastructure/persistence/`; REST integration uses `api/` + `queries/`.
+**Persistence split:** the **browser** uses RxDB/IndexedDB under `infrastructure/persistence/` for offline-capable match/player documents. The **Nest API** uses **PostgreSQL + Prisma** for authoritative player (and future) relational data. They are separate: REST + TanStack Query sync with the server; RxDB remains optional local storage.
 
 ## App: `apps/backend` (`@scoreboard/backend`)
 
 NestJS 11 REST API. Imports `@scoreboard/core` via workspace dependency for access to the domain and application layer.
 
 ```
-apps/backend/src/
-├── app.module.ts          ← Root NestJS module
-├── app.controller.ts      ← Root controller
-├── app.service.ts         ← Root service
-├── auth/                  ← Keycloak: AuthModule, KeycloakConfigModule, KeycloakConfigService
-├── config/                ← app, database, auth (+ Joi validation.schema)
-├── players/               ← Example feature module
-└── main.ts                ← Bootstrap entry point
+apps/backend/
+├── prisma/
+│   ├── schema.prisma      ← PostgreSQL models (e.g. Player), enums
+│   └── migrations/        ← `prisma migrate` history (committed)
+├── prisma.config.ts       ← Prisma 7 project config
+└── src/
+    ├── app.module.ts          ← Root NestJS module
+    ├── app.controller.ts      ← Root controller
+    ├── app.service.ts         ← Root service
+    ├── auth/                  ← Keycloak: AuthModule, KeycloakConfigModule, KeycloakConfigService
+    ├── config/                ← app, database, auth (+ Joi validation.schema)
+    ├── prisma/                ← PrismaModule + PrismaService
+    ├── generated/prisma/      ← Generated client (from `prisma generate`)
+    ├── players/               ← Example feature module
+    └── main.ts                ← Bootstrap — `enableShutdownHooks()` for Prisma disconnect
 ```
 
 - `paths` in `tsconfig.json` resolve `@scoreboard/core/*` → `../../packages/core/src/*` for both type-checking and webpack build.
 - `moduleNameMapper` in Jest config mirrors the same resolution for tests.
-- Dockerfile at `apps/backend/Dockerfile` builds a minimal production image using `turbo prune`.
+- Dockerfile at `apps/backend/Dockerfile` builds a minimal production image using `turbo prune`, copies `prisma/` into the runtime image, and runs **`prisma migrate deploy`** before `node dist/main.js` (see `backend.mdc`).
 
 ## App: `apps/auth` (`@scoreboard/auth`)
 
@@ -181,3 +190,4 @@ GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 9. **Environment variables are validated at startup** — both backend (`@nestjs/config` + Joi) and frontend (`infrastructure/env.ts` + Joi) crash immediately with descriptive errors if required env vars are missing or invalid. Never read `import.meta.env` or `process.env` directly — import from the validated `env` module instead.
 10. **Frontend auth uses `keycloak-js` directly** — no wrapper library. `AuthProvider` wraps the entire app with `onLoad: 'login-required'`. Use the `useAuth()` hook to access user info, roles, and logout.
 11. **Frontend ↔ Nest API** — Use `env.VITE_API_URL` (never raw `import.meta.env`); axios in `src/api/` for transport; TanStack Query in `src/queries/` for server cache; send `Authorization: Bearer` with `useAuth().token` on every backend request. The backend validates tokens with Keycloak (`nest-keycloak-connect`); configure `KEYCLOAK_*` env vars (see `backend.mdc`).
+12. **Where data lives** — Frontend: IndexedDB via RxDB. Backend API: PostgreSQL via Prisma; schema and migrations live in `apps/backend/prisma/`; production containers apply migrations at startup (`migrate deploy`).

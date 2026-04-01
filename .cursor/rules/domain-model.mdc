@@ -197,9 +197,22 @@ export class Team {
 type PointScorer = 'team1' | 'team2'
 type MatchStatus = 'not_started' | 'in_progress' | 'finished'
 type GameType = 'regular' | 'tiebreak' | 'super-tiebreak'
+type Gender = 'male' | 'female' | 'unknown'
 ```
 
 Always import these from `shared/types`, not from individual entities, to avoid circular deps.
+
+## Player (`packages/core/src/domain/player.entity.ts`)
+
+`Player` is a domain **entity** (not part of the `Match` aggregate). It represents a registered person linked to the auth provider:
+
+- **`userId`** — stable id from Keycloak (subject), used for “me” lookups and API correlation.
+- **`name`** — display name.
+- **`gender`** — `'male' | 'female' | 'unknown'`. Used by `Match` when resolving mixed vs same-gender match rules: only `'male'` counts toward “all male”, only `'female'` toward “all female”; `'unknown'` does not make a side “purely” one gender, so combinations involving `unknown` follow the mixed path where symmetry rules apply (see `match.aggregate.ts`).
+- **`whatsapp`** — optional; **`null`** when not provided (aligned with optional `photoUrl`).
+- **`photoUrl`** — optional image URL.
+
+Application DTOs and Prisma model **`Player`** mirror these fields; the API database stores players in PostgreSQL (`players` table), while the frontend may also cache copies in RxDB for offline use.
 
 ## Use Cases
 

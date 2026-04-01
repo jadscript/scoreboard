@@ -46,6 +46,74 @@ export class SomeService {
 
 Always use the typed namespace getter (`configService.get<T>('namespace')`), never `process.env` directly.
 
+## Prisma (PostgreSQL)
+
+The API persists relational data with **Prisma** against PostgreSQL. Connection string: **`DATABASE_URL`** (same Joi-validated `database` namespace as before).
+
+### Layout
+
+| Path | Purpose |
+|---|---|
+| `prisma/schema.prisma` | Datasource (`postgresql`), models, enums |
+| `prisma/migrations/` | Versioned SQL migrations (commit this folder) |
+| `prisma.config.ts` | Prisma 7 config (e.g. `datasource.url` from env) |
+| `src/generated/prisma/` | Generated client (do not edit; produced by `prisma generate`) |
+
+### Commands (`apps/backend/package.json`)
+
+| Script | Command | When |
+|---|---|---|
+| `pnpm run prisma:generate` | `prisma generate` | After schema changes; also runs in `build` / `postinstall` |
+| `pnpm run prisma:migrate` | `prisma migrate dev` | **Local dev only** — creates/applies migrations interactively |
+| `pnpm run prisma:deploy` | `prisma migrate deploy` | **CI / production / Docker** — non-interactive, applies pending migrations |
+
+Prefer **`migrate deploy`** in production and containers; avoid `db push` / interactive `migrate dev` there.
+
+### Creating a new migration (development)
+
+Work from `apps/backend` with a running Postgres instance and valid **`DATABASE_URL`**.
+
+1. Change **`prisma/schema.prisma`** (models, fields, enums, `@@index`, etc.).
+2. Run:
+
+   ```bash
+   pnpm exec prisma migrate dev --name short_description_of_change
+   ```
+
+   Prisma compares the schema to the database, writes **`prisma/migrations/<timestamp>_<name>/migration.sql`**, applies it, and runs **`prisma generate`**.
+
+3. **Commit** the new migration directory with the schema/code changes. Do not rewrite migration files that are already applied in shared environments without a follow-up migration.
+
+### Applying migrations
+
+| Context | Command | Purpose |
+|---|---|---|
+| Dev (after `git pull`) | `pnpm run prisma:migrate` or `pnpm exec prisma migrate dev` | Applies pending migrations; may prompt if drift is detected. |
+| CI / prod / fresh DB | `pnpm run prisma:deploy` | **`prisma migrate deploy`** — applies all pending migrations, no prompts. |
+| Docker | (image `CMD`) | `prisma migrate deploy` then `node dist/main.js`. |
+
+For a new clone: set `DATABASE_URL`, then either `migrate dev` (dev workflow) or `migrate deploy` (align DB to committed migrations only).
+
+### NestJS integration
+
+- **`PrismaModule`** (`src/prisma/prisma.module.ts`) provides and exports **`PrismaService`**; import it in `AppModule` (or feature modules that need the DB).
+- **`PrismaService`** (`src/prisma/prisma.service.ts`) extends `PrismaClient`, uses the **`@prisma/adapter-pg`** driver with `DATABASE_URL`, and implements `OnModuleInit` / `OnModuleDestroy` with `$connect()` / `$disconnect()`.
+- Import **`PrismaClient`** from `src/generated/prisma/client`, not from `@prisma/client` directly (custom generator output).
+- **`main.ts`** calls `app.enableShutdownHooks()` so the process can disconnect Prisma cleanly on shutdown.
+
+### Model `Player` (aligned with `@scoreboard/core`)
+
+| Field | Prisma | Notes |
+|---|---|---|
+| `id` | UUID string `@id` | Matches domain entity id |
+| `name` | `String` | |
+| `userId` | `String @unique` | Keycloak subject / lookup key |
+| `gender` | `enum Gender { male female unknown }` | Same literals as domain `Gender` |
+| `whatsapp` | `String?` | Optional — `NULL` when absent |
+| `photoUrl` | `String?` | Optional |
+
+Table name: `players` (`@@map("players")`).
+
 ## Environment variables
 
 | Variable | Type | Default | Required | Description |
@@ -114,8 +182,10 @@ Configured in `main.ts` using `AppConfig`. Rules:
 
 1. **pruner** — `turbo prune @scoreboard/backend --docker`
 2. **installer** — `pnpm install --frozen-lockfile` on the pruned subset
-3. **builder** — `pnpm turbo build --filter=@scoreboard/backend`
-4. **runner** — `node:22-alpine`, runs `node dist/main`, exposes port `3000`
+3. **builder** — `pnpm turbo build --filter=@scoreboard/backend` (build runs `prisma generate` first), then `pnpm --filter=@scoreboard/backend deploy --prod /deploy`
+4. **runner** — `node:22-alpine`, copies `dist/`, deployed `node_modules/`, `prisma/` (schema + migrations), and `prisma.config.ts`; **`CMD`** runs `prisma migrate deploy` then `node dist/main.js`; exposes port `3000`
+
+The container **fails fast** if PostgreSQL is unreachable or migrations are invalid — migrations apply at **container start**, not inside the GitHub Actions `pnpm test` job unless you add a dedicated Postgres service step.
 
 Build from the **monorepo root**:
 
