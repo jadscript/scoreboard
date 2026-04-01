@@ -19,6 +19,10 @@ RUN turbo prune @scoreboard/backend --docker
 FROM base AS installer
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
+# postinstall em @scoreboard/backend executa `prisma generate`; precisa do schema
+# e do prisma.config.ts antes do install (out/json não inclui esses arquivos).
+COPY --from=pruner /app/out/full/apps/backend/prisma ./apps/backend/prisma
+COPY --from=pruner /app/out/full/apps/backend/prisma.config.ts ./apps/backend/prisma.config.ts
 RUN pnpm install --frozen-lockfile
 
 # ── Stage 3: Build ───────────────────────────────────────────────────────────
