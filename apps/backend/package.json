@@ -1,6 +1,6 @@
 {
   "name": "@scoreboard/backend",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Scoreboard — NestJS API backend",
   "author": "",
   "private": true,
