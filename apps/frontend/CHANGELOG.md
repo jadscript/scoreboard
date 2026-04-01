@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.17.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.16.0...@scoreboard/frontend@0.17.0) (2026-04-01)
+
+### Features
+
+* **backend:** :sparkles: integrate Prisma for PostgreSQL with Player model, add migration strategies, and update Docker configuration ([a34a551](https://github.com/jadscript/scoreboard/commit/a34a551f48b4a6802219dbe59d72edb9e90ebd37))
+* **backend:** add PlayerModule and PlayerController with a sample endpoint for player details ([db427d4](https://github.com/jadscript/scoreboard/commit/db427d4e889d4c314cf0a294293068f83ad80a84))
+* **backend:** integrate Keycloak for authentication and authorization with environment configuration ([69faf98](https://github.com/jadscript/scoreboard/commit/69faf98cddd46e8ea0d0bda866d355803a053a57))
+* **frontend:** add API integration and enhance routing with new HomePage component ([1928a1e](https://github.com/jadscript/scoreboard/commit/1928a1e3cbe42b80a6864bd9ecaaeb377048cde9))
+
 ## [0.16.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.15.0...@scoreboard/frontend@0.16.0) (2026-03-31)
 
 ## [0.15.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.14.0...@scoreboard/frontend@0.15.0) (2026-03-31)
