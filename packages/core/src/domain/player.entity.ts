@@ -7,7 +7,7 @@ interface PlayerProps {
   name: string
   userId: string
   gender: Gender
-  whatsapp: string
+  whatsapp: string | null
   photoUrl: string | null
 }
 
@@ -20,7 +20,7 @@ export class Player extends Entity<PlayerProps> {
     name: string,
     userId: string,
     gender: Gender,
-    whatsapp: string,
+    whatsapp: string | null = null,
     photoUrl: string | null = null,
   ): Player {
     return new Player({ name, userId, gender, whatsapp, photoUrl })
@@ -31,7 +31,7 @@ export class Player extends Entity<PlayerProps> {
     name: string,
     userId: string,
     gender: Gender,
-    whatsapp: string,
+    whatsapp: string | null,
     photoUrl: string | null,
   ): Player {
     return new Player({ name, userId, gender, whatsapp, photoUrl }, id)
@@ -49,7 +49,7 @@ export class Player extends Entity<PlayerProps> {
     return this.props.gender
   }
 
-  get whatsapp(): string {
+  get whatsapp(): string | null {
     return this.props.whatsapp
   }
 

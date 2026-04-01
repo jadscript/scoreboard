@@ -14,13 +14,18 @@ export class UpdatePlayerHandler implements ICommandHandler<UpdatePlayerInput> {
     const existing = await this.playerRepository.findById(input.playerId)
     if (!existing) throw new Error(`Player not found: ${input.playerId}`)
 
+    const whatsapp =
+      input.whatsapp !== undefined ? input.whatsapp : existing.whatsapp
+    const photoUrl =
+      input.photoUrl !== undefined ? input.photoUrl : existing.photoUrl
+
     const updated = Player.restore(
       input.playerId,
       input.name,
       existing.userId,
       input.gender,
-      input.whatsapp,
-      input.photoUrl ?? null,
+      whatsapp,
+      photoUrl,
     )
 
     await this.playerRepository.save(updated)

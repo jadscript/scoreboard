@@ -74,9 +74,9 @@ describe('GetMatchHandler', () => {
       const dto = await getMatch.execute({ matchId: mid })
       expect(dto.matchType).toBe('singles')
       expect(dto.team1.players).toHaveLength(1)
-      expect(dto.team1.players[0].email).toBe('a@example.com')
+      expect(dto.team1.players[0].userId).toBe('a@example.com')
       expect(dto.team1.players[0].gender).toBe('male')
-      expect(dto.team2.players[0].email).toBe('b@example.com')
+      expect(dto.team2.players[0].userId).toBe('b@example.com')
     })
   })
 

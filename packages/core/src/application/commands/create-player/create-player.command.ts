@@ -18,7 +18,7 @@ export class CreatePlayerHandler
       input.name,
       input.userId,
       input.gender,
-      input.whatsapp,
+      input.whatsapp ?? null,
       input.photoUrl ?? null,
     )
 

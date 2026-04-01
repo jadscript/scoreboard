@@ -6,15 +6,27 @@ describe('Player', () => {
     it('creates a player with the provided fields', () => {
       const player = Player.create('Alice', 'alice@example.com', 'female', '+5511999990000')
       expect(player.name).toBe('Alice')
-      expect(player.email).toBe('alice@example.com')
+      expect(player.userId).toBe('alice@example.com')
       expect(player.gender).toBe('female')
       expect(player.whatsapp).toBe('+5511999990000')
       expect(player.photoUrl).toBeNull()
     })
 
     it('stores a photoUrl when provided', () => {
-      const player = Player.create('Bob', 'bob@example.com', 'male', '+5511999990001', 'https://cdn/bob.jpg')
+      const player = Player.create(
+        'Bob',
+        'bob@example.com',
+        'male',
+        '+5511999990001',
+        'https://cdn/bob.jpg',
+      )
       expect(player.photoUrl).toBe('https://cdn/bob.jpg')
+    })
+
+    it('allows null whatsapp', () => {
+      const player = Player.create('NoPhone', 'u1', 'unknown', null)
+      expect(player.whatsapp).toBeNull()
+      expect(player.gender).toBe('unknown')
     })
 
     it('generates a unique id for each player', () => {
@@ -35,7 +47,7 @@ describe('Player', () => {
       const player = Player.restore('uuid-42', 'Diana', 'd@example.com', 'female', '+4', null)
       expect(player.id).toBe('uuid-42')
       expect(player.name).toBe('Diana')
-      expect(player.email).toBe('d@example.com')
+      expect(player.userId).toBe('d@example.com')
       expect(player.gender).toBe('female')
       expect(player.photoUrl).toBeNull()
     })

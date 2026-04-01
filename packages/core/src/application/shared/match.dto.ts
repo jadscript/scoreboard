@@ -5,7 +5,7 @@ export interface PlayerDto {
   name: string
   userId: string
   gender: Gender
-  whatsapp: string
+  whatsapp: string | null
   photoUrl: string | null
 }
 

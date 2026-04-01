@@ -12,6 +12,13 @@ export class InMemoryPlayerRepository implements IPlayerRepository {
     return this.store.get(id) ?? null
   }
 
+  async findByUserId(userId: string): Promise<Player | null> {
+    for (const player of this.store.values()) {
+      if (player.userId === userId) return player
+    }
+    return null
+  }
+
   async findManyByIds(ids: string[]): Promise<Player[]> {
     return ids.flatMap((id) => {
       const p = this.store.get(id)

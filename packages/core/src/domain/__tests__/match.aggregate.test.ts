@@ -10,6 +10,7 @@ const team2 = Team.create('Argentina')
 
 const male = () => Player.create('João', 'm@example.com', 'male', '+1')
 const female = () => Player.create('Ana', 'f@example.com', 'female', '+2')
+const unknown = () => Player.create('X', 'u@example.com', 'unknown', null)
 
 /** Wins an entire game for the given winner (4 direct points) */
 function winGame(match: Match, winner: PointScorer): void {
@@ -78,6 +79,18 @@ describe('Match', () => {
       const t1 = Team.create('A', [male(), male()])
       const t2 = Team.create('B', [male(), female()])
       expect(() => Match.create(t1, t2)).toThrow('Inconsistent player genders between teams')
+    })
+
+    it('matchType is doubles_mixed with unknown players on both teams', () => {
+      const t1 = Team.create('A', [unknown(), unknown()])
+      const t2 = Team.create('B', [unknown(), unknown()])
+      expect(Match.create(t1, t2).matchType).toBe('doubles_mixed')
+    })
+
+    it('matchType is doubles_mixed with male+unknown vs male+unknown', () => {
+      const t1 = Team.create('A', [male(), unknown()])
+      const t2 = Team.create('B', [male(), unknown()])
+      expect(Match.create(t1, t2).matchType).toBe('doubles_mixed')
     })
 
     it('throws when teams have more than 2 players', () => {
