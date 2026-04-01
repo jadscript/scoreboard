@@ -41,7 +41,33 @@ export async function getDatabase(): Promise<ScoreboardDatabase> {
   })
 
   await db.addCollections({
-    matches: { schema: matchSchema },
+    matches: {
+      schema: matchSchema,
+      migrationStrategies: {
+        1: (oldDoc: Record<string, unknown>) => {
+          const patchPlayers = (team: Record<string, unknown>) => {
+            const players = team['players'] as Record<string, unknown>[] | undefined
+            return {
+              ...team,
+              players: players?.map((p) => ({
+                ...p,
+                whatsapp:
+                  p['whatsapp'] !== undefined && p['whatsapp'] !== null
+                    ? String(p['whatsapp'])
+                    : null,
+              })),
+            }
+          }
+          const t1 = oldDoc['team1'] as Record<string, unknown>
+          const t2 = oldDoc['team2'] as Record<string, unknown>
+          return {
+            ...oldDoc,
+            team1: patchPlayers(t1),
+            team2: patchPlayers(t2),
+          }
+        },
+      },
+    },
     players: {
       schema: playerSchema,
       migrationStrategies: {
@@ -49,6 +75,14 @@ export async function getDatabase(): Promise<ScoreboardDatabase> {
         1: (oldDoc: Record<string, unknown>) => ({
           ...oldDoc,
           name: String(oldDoc['email'] ?? '').split('@')[0],
+        }),
+        // v1 → v2: whatsapp optional; gender may be unknown
+        2: (oldDoc: Record<string, unknown>) => ({
+          ...oldDoc,
+          whatsapp:
+            oldDoc['whatsapp'] !== undefined && oldDoc['whatsapp'] !== null
+              ? String(oldDoc['whatsapp'])
+              : null,
         }),
       },
     },

@@ -8,16 +8,30 @@ interface Props {
   onSave: (form: PlayerFormData, id?: string) => Promise<void>
 }
 
-const EMPTY_FORM: PlayerFormData = { name: '', email: '', gender: 'male', whatsapp: '', photoUrl: '' }
+const EMPTY_FORM: PlayerFormData = {
+  name: '',
+  userId: '',
+  gender: 'male',
+  whatsapp: '',
+  photoUrl: '',
+}
+
+const GENDERS: Gender[] = ['male', 'female', 'unknown']
+
+function genderLabel(g: Gender): string {
+  if (g === 'male') return 'Masculino'
+  if (g === 'female') return 'Feminino'
+  return 'Desconhecido'
+}
 
 export function PlayerModal({ editTarget, onClose, onSave }: Props) {
   const [form, setForm] = useState<PlayerFormData>(
     editTarget
       ? {
           name: editTarget.name,
-          email: editTarget.email,
+          userId: editTarget.userId,
           gender: editTarget.gender,
-          whatsapp: editTarget.whatsapp,
+          whatsapp: editTarget.whatsapp ?? '',
           photoUrl: editTarget.photoUrl ?? '',
         }
       : EMPTY_FORM,
@@ -69,22 +83,24 @@ export function PlayerModal({ editTarget, onClose, onSave }: Props) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-300">E-mail</label>
+            <label className="text-sm font-medium text-slate-300">User ID (Keycloak)</label>
             <input
-              type="email"
+              type="text"
               required
-              value={form.email}
-              onChange={(e) => set('email', e.target.value)}
-              placeholder="jogador@exemplo.com"
-              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 text-sm outline-none focus:border-indigo-500 transition-colors placeholder:text-slate-500"
+              readOnly={Boolean(editTarget)}
+              value={form.userId}
+              onChange={(e) => set('userId', e.target.value)}
+              placeholder="sub ou e-mail do utilizador"
+              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 text-sm outline-none focus:border-indigo-500 transition-colors placeholder:text-slate-500 read-only:opacity-70 read-only:cursor-not-allowed"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-300">WhatsApp</label>
+            <label className="text-sm font-medium text-slate-300">
+              WhatsApp <span className="text-slate-500 font-normal">(opcional)</span>
+            </label>
             <input
               type="tel"
-              required
               value={form.whatsapp}
               onChange={(e) => set('whatsapp', e.target.value)}
               placeholder="+55 11 99999-0000"
@@ -94,11 +110,11 @@ export function PlayerModal({ editTarget, onClose, onSave }: Props) {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-slate-300">Gênero</label>
-            <div className="flex gap-3">
-              {(['male', 'female'] as Gender[]).map((g) => (
+            <div className="flex flex-col gap-2">
+              {GENDERS.map((g) => (
                 <label
                   key={g}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border cursor-pointer text-sm font-medium transition-colors select-none
+                  className={`flex items-center gap-2 py-2 px-3 rounded-lg border cursor-pointer text-sm font-medium transition-colors select-none
                     ${form.gender === g
                       ? 'bg-indigo-600 border-indigo-500 text-white'
                       : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'
@@ -112,7 +128,7 @@ export function PlayerModal({ editTarget, onClose, onSave }: Props) {
                     onChange={() => set('gender', g)}
                     className="sr-only"
                   />
-                  {g === 'male' ? 'Masculino' : 'Feminino'}
+                  {genderLabel(g)}
                 </label>
               ))}
             </div>

@@ -6,11 +6,11 @@ const playerSchema = {
   properties: {
     id: { type: 'string' },
     email: { type: 'string' },
-    gender: { type: 'string', enum: ['male', 'female'] },
-    whatsapp: { type: 'string' },
+    gender: { type: 'string', enum: ['male', 'female', 'unknown'] },
+    whatsapp: { type: ['string', 'null'] },
     photoUrl: { type: 'string' },
   },
-  required: ['id', 'email', 'gender', 'whatsapp'],
+  required: ['id', 'email', 'gender'],
 }
 
 const teamSchema = {
@@ -24,7 +24,7 @@ const teamSchema = {
 }
 
 export const matchSchema: RxJsonSchema<MatchDocument> = {
-  version: 0,
+  version: 1,
   primaryKey: 'id',
   type: 'object',
   properties: {

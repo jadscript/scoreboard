@@ -12,7 +12,7 @@ export type { PlayerDto }
 
 export interface PlayerFormData {
   name: string
-  email: string
+  userId: string
   gender: Gender
   whatsapp: string
   photoUrl: string
@@ -58,17 +58,17 @@ export function usePlayers() {
     if (!handlers.current) return
     const { playerId } = await handlers.current.createPlayer.execute({
       name: form.name,
-      email: form.email,
+      userId: form.userId,
       gender: form.gender,
-      whatsapp: form.whatsapp,
+      whatsapp: form.whatsapp.trim() === '' ? null : form.whatsapp,
       photoUrl: form.photoUrl || null,
     })
     const newPlayer: PlayerDto = {
       id: playerId,
       name: form.name,
-      email: form.email,
+      userId: form.userId,
       gender: form.gender,
-      whatsapp: form.whatsapp,
+      whatsapp: form.whatsapp.trim() === '' ? null : form.whatsapp,
       photoUrl: form.photoUrl || null,
     }
     setPlayers((prev) => [...prev, newPlayer])
@@ -76,18 +76,25 @@ export function usePlayers() {
 
   const update = useCallback(async (playerId: string, form: PlayerFormData) => {
     if (!handlers.current) return
+    const wa = form.whatsapp.trim() === '' ? null : form.whatsapp
     await handlers.current.updatePlayer.execute({
       playerId,
       name: form.name,
-      email: form.email,
       gender: form.gender,
-      whatsapp: form.whatsapp,
+      whatsapp: wa,
       photoUrl: form.photoUrl || null,
     })
     setPlayers((prev) =>
       prev.map((p) =>
         p.id === playerId
-          ? { ...p, name: form.name, email: form.email, gender: form.gender, whatsapp: form.whatsapp, photoUrl: form.photoUrl || null }
+          ? {
+              ...p,
+              name: form.name,
+              userId: form.userId,
+              gender: form.gender,
+              whatsapp: wa,
+              photoUrl: form.photoUrl || null,
+            }
           : p,
       ),
     )

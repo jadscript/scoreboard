@@ -16,7 +16,7 @@ export interface PlayerDocument {
   name: string
   email: string
   gender: Gender
-  whatsapp: string
+  whatsapp: string | null
   photoUrl: string | null
 }
 
@@ -91,7 +91,7 @@ function serializePlayer(player: Player): PlayerDocument {
   return {
     id: player.id,
     name: player.name,
-    email: player.email,
+    email: player.userId,
     gender: player.gender,
     whatsapp: player.whatsapp,
     photoUrl: player.photoUrl,
@@ -153,7 +153,14 @@ function deserializeTeam(doc: TeamDocument): Team {
 }
 
 function deserializePlayer(doc: PlayerDocument): Player {
-  return Player.restore(doc.id, doc.name, doc.email, doc.gender, doc.whatsapp, doc.photoUrl)
+  return Player.restore(
+    doc.id,
+    doc.name,
+    doc.email,
+    doc.gender,
+    doc.whatsapp ?? null,
+    doc.photoUrl ?? null,
+  )
 }
 
 function deserializeSet(doc: SetDocument): SetEntity {

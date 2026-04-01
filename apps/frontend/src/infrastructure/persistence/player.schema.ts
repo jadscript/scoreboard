@@ -6,21 +6,21 @@ export interface PlayerDocument {
   name: string
   email: string
   gender: Gender
-  whatsapp: string
+  whatsapp: string | null
   photoUrl: string | null
 }
 
 export const playerSchema: RxJsonSchema<PlayerDocument> = {
-  version: 1,
+  version: 2,
   primaryKey: 'id',
   type: 'object',
   properties: {
     id: { type: 'string', maxLength: 36 },
     name: { type: 'string' },
     email: { type: 'string' },
-    gender: { type: 'string', enum: ['male', 'female'] },
-    whatsapp: { type: 'string' },
+    gender: { type: 'string', enum: ['male', 'female', 'unknown'] },
+    whatsapp: { type: ['string', 'null'] },
     photoUrl: { type: 'string' },
   },
-  required: ['id', 'name', 'email', 'gender', 'whatsapp'],
+  required: ['id', 'name', 'email', 'gender'],
 }

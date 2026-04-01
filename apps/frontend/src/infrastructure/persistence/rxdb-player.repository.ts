@@ -21,6 +21,15 @@ export class RxDBPlayerRepository implements IPlayerRepository {
     return toPlayer(doc.toJSON() as PlayerDocument)
   }
 
+  async findByUserId(userId: string): Promise<Player | null> {
+    const docs = await this.db.players
+      .find({ selector: { email: userId } })
+      .exec()
+    const doc = docs[0]
+    if (!doc) return null
+    return toPlayer(doc.toJSON() as PlayerDocument)
+  }
+
   async findManyByIds(ids: string[]): Promise<Player[]> {
     const docs = await this.db.players
       .find({ selector: { id: { $in: ids } } })
@@ -32,7 +41,7 @@ export class RxDBPlayerRepository implements IPlayerRepository {
     await this.db.players.upsert({
       id: player.id,
       name: player.name,
-      email: player.email,
+      email: player.userId,
       gender: player.gender,
       whatsapp: player.whatsapp,
       photoUrl: player.photoUrl,
@@ -46,5 +55,12 @@ export class RxDBPlayerRepository implements IPlayerRepository {
 }
 
 function toPlayer(doc: PlayerDocument): Player {
-  return Player.restore(doc.id, doc.name, doc.email, doc.gender, doc.whatsapp, doc.photoUrl)
+  return Player.restore(
+    doc.id,
+    doc.name,
+    doc.email,
+    doc.gender,
+    doc.whatsapp ?? null,
+    doc.photoUrl ?? null,
+  )
 }

@@ -52,7 +52,7 @@ export function PlayerList({ players, onEdit, onDelete, onCreateFirst }: Props) 
             {player.photoUrl ? (
               <img
                 src={player.photoUrl}
-                alt={player.email}
+                alt={player.name}
                 className="h-10 w-10 rounded-full object-cover shrink-0 bg-slate-700"
               />
             ) : (
@@ -65,7 +65,7 @@ export function PlayerList({ players, onEdit, onDelete, onCreateFirst }: Props) 
 
             <div className="flex-1 min-w-0">
               <p className="text-slate-100 text-sm font-medium truncate">{player.name}</p>
-              <p className="text-slate-500 text-xs mt-0.5">{player.email}</p>
+              <p className="text-slate-500 text-xs mt-0.5 truncate">{player.userId}</p>
             </div>
 
             <GenderBadge gender={player.gender} />
