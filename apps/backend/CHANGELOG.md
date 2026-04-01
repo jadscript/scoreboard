@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.6.0...@scoreboard/backend@0.7.0) (2026-04-01)
+
+### Bug Fixes
+
+* **backend:** update Dockerfile to include Prisma schema and configuration files for proper installation ([ec6b092](https://github.com/jadscript/scoreboard/commit/ec6b092afd72e906997967cd39280545fc6eb73d))
+
 ## [0.6.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.5.0...@scoreboard/backend@0.6.0) (2026-04-01)
 
 ### Features
