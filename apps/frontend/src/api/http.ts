@@ -10,28 +10,91 @@ const apiClient = axios.create({
   baseURL: env.VITE_API_URL.replace(/\/$/, ''),
 })
 
-export async function apiGet<T>(path: string, token: string): Promise<T> {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+type ApiMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+
+interface ApiRequestOptions<T = unknown> {
+  method: ApiMethod;
+  path: string;
+  token: string;
+  data?: T;
+  params?: Record<string, unknown>;
+}
+
+async function apiRequest<R = unknown, D = unknown>({
+  method,
+  path,
+  token,
+  data,
+  params,
+}: ApiRequestOptions<D>): Promise<R> {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
   try {
-    const { data } = await apiClient.get<T>(normalizedPath, {
+    const { data: responseData } = await apiClient.request<R>({
+      url: normalizedPath,
+      method,
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    })
-    return data
+      ...(data !== undefined ? { data } : {}),
+      ...(params !== undefined ? { params } : {}),
+    });
+    return responseData;
   } catch (err: unknown) {
     if (isAxiosError(err)) {
-      const status = err.response?.status ?? 0
-      const payload = err.response?.data
+      const status = err.response?.status ?? 0;
+      const payload = err.response?.data;
       const body =
         typeof payload === 'string'
           ? payload
           : payload != null
-            ? JSON.stringify(payload)
-            : ''
-      throw new Error(body || `HTTP ${status} ${err.message}`)
+          ? JSON.stringify(payload)
+          : '';
+      throw new Error(body || `HTTP ${status} ${err.message}`);
     }
-    throw err
+    throw err;
   }
+}
+
+export function apiGet<T>(path: string, token: string): Promise<T> {
+  return apiRequest<T>({
+    method: 'get',
+    path,
+    token,
+  });
+}
+
+export function apiPost<T>(path: string, token: string, data?: unknown): Promise<T> {
+  return apiRequest<T, typeof data>({
+    method: 'post',
+    path,
+    token,
+    data,
+  });
+}
+
+export function apiPut<T>(path: string, token: string, data?: unknown): Promise<T> {
+  return apiRequest<T, typeof data>({
+    method: 'put',
+    path,
+    token,
+    data,
+  });
+}
+
+export function apiPatch<T>(path: string, token: string, data?: unknown): Promise<T> {
+  return apiRequest<T, typeof data>({
+    method: 'patch',
+    path,
+    token,
+    data,
+  });
+}
+
+export function apiDelete<T>(path: string, token: string): Promise<T> {
+  return apiRequest<T>({
+    method: 'delete',
+    path,
+    token,
+  });
 }

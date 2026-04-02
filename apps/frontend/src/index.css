@@ -5,10 +5,15 @@
   box-sizing: border-box;
 }
 
+:root {
+  --color-background: #eff2e7;
+  --color-text: #191B28;
+}
+
 html, body {
   font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
-  background: #e6d7a6;
-  color: #000;
+  background: var(--color-background);
+  color: var(--color-text);
   min-height: 100vh;
   margin: 0;
   padding: 0;

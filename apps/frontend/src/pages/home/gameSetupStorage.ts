@@ -2,6 +2,8 @@ import type {
   GameFormat,
   GamesPerSetOption,
   MatchSetsOption,
+  MatchFlowType,
+  MatchGenderOption,
   TeamDraft,
 } from './types'
 import { playersPerTeamForFormat } from './types'
@@ -16,6 +18,8 @@ export interface PersistedGameSetup {
   gamesPerSet: GamesPerSetOption
   matchSets: MatchSetsOption
   teams: TeamDraft[]
+  matchGender: MatchGenderOption
+  matchFlowType: MatchFlowType
 }
 
 function newTeamId(): string {
@@ -41,6 +45,8 @@ export function getDefaultGameSetup(): PersistedGameSetup {
     gamesPerSet: 6,
     matchSets: 2,
     teams: [emptyTeam(2), emptyTeam(2)],
+    matchGender: 'mixed',
+    matchFlowType: 'new',
   }
 }
 
@@ -54,6 +60,14 @@ function isGamesPerSetOption(x: unknown): x is GamesPerSetOption {
 
 function isMatchSetsOption(x: unknown): x is MatchSetsOption {
   return x === 1 || x === 2 || x === 3
+}
+
+function isMatchGenderOption(x: unknown): x is MatchGenderOption {
+  return x === 'male' || x === 'female' || x === 'mixed'
+}
+
+function isMatchFlowType(x: unknown): x is MatchFlowType {
+  return x === 'new' || x === 'join'
 }
 
 function parseTeam(raw: unknown): TeamDraft | null {
@@ -76,6 +90,12 @@ function normalizeSetup(raw: unknown): PersistedGameSetup {
   const gameFormat = isGameFormat(o.gameFormat) ? o.gameFormat : fallback.gameFormat
   const gamesPerSet = isGamesPerSetOption(o.gamesPerSet) ? o.gamesPerSet : fallback.gamesPerSet
   const matchSets = isMatchSetsOption(o.matchSets) ? o.matchSets : fallback.matchSets
+  const matchGender = isMatchGenderOption(o.matchGender)
+    ? o.matchGender
+    : fallback.matchGender
+  const matchFlowType = isMatchFlowType(o.matchFlowType)
+    ? o.matchFlowType
+    : fallback.matchFlowType
 
   const n = playersPerTeamForFormat(gameFormat)
   let teams: TeamDraft[] = fallback.teams
@@ -90,7 +110,7 @@ function normalizeSetup(raw: unknown): PersistedGameSetup {
     }
   }
 
-  return { gameFormat, gamesPerSet, matchSets, teams }
+  return { gameFormat, gamesPerSet, matchSets, teams, matchGender, matchFlowType }
 }
 
 export function loadGameSetup(): PersistedGameSetup {
@@ -121,9 +141,17 @@ export function saveGameSetup(setup: PersistedGameSetup): void {
         gamesPerSet: setup.gamesPerSet,
         matchSets: setup.matchSets,
         teams: setup.teams,
+        matchGender: setup.matchGender,
+        matchFlowType: setup.matchFlowType,
       }),
     )
   } catch {
     /* quota */
   }
+}
+
+/** Mescla com o que já está no storage (útil na home para não apagar times). */
+export function patchGameSetup(partial: Partial<PersistedGameSetup>): void {
+  const current = loadGameSetup()
+  saveGameSetup({ ...current, ...partial })
 }

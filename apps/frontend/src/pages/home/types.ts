@@ -25,3 +25,7 @@ export interface TeamDraft {
   id: string
   playerNames: string[]
 }
+
+export type MatchGenderOption = 'male' | 'female' | 'mixed'
+
+export type MatchFlowType = 'new' | 'join'

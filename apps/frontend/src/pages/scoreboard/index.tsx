@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { loadGameSetup } from "../game/gameSetupStorage";
-import { playersPerTeamForFormat } from "../game/types";
-import { useGameUsers } from "../game/useGameUsers";
+import { loadGameSetup } from "../home/gameSetupStorage";
+import { playersPerTeamForFormat } from "../home/types";
 import { useScoreboard } from "../../hooks/useScoreboard";
 import { appendSavedMatch } from "./matchHistoryStorage";
 import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
@@ -24,7 +23,7 @@ export function ScoreboardPage() {
     setMatchHistorySaveError(false);
   }, []);
 
-  const { users } = useGameUsers();
+  // const { users } = useGameUsers();
   const gameSetup = useMemo(() => loadGameSetup(), []);
   const playersPerTeam = playersPerTeamForFormat(gameSetup.gameFormat);
 
@@ -130,8 +129,9 @@ export function ScoreboardPage() {
               games={games}
               setHistory={setHistory}
               setsToWinMatch={setsToWinMatch}
+              matchFinished={matchFinished}
               playersPerTeam={playersPerTeam}
-              users={users}
+              users={[]}
             />
           </div>
         </div>

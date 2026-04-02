@@ -1,6 +1,14 @@
-import type { GameUser } from "../../game/useGameUsers";
 import { ScoreboardSetScores } from "./ScoreboardSetScores";
 import { ScoreboardTeamRow } from "./ScoreboardTeamRow";
+
+interface GameUser {
+  id: string;
+  name: string;
+  email: string;
+  gender: "male" | "female" | "unknown";
+  whatsapp: string | null;
+  photoUrl: string;
+}
 
 interface SetScore {
   team1: number;
@@ -15,12 +23,13 @@ interface Props {
   games: SetScore;
   setHistory: SetScore[];
   setsToWinMatch: number;
+  matchFinished: boolean;
   playersPerTeam: 1 | 2;
   users: GameUser[];
 }
 
 const Divider = () => (
-  <div className="w-[2px] min-h-[3rem] shrink-0 self-stretch bg-gray-300 rounded-full" />
+  <div className="w-[2px] min-h-12 shrink-0 self-stretch bg-gray-300 rounded-full" />
 );
 
 export function ScoreboardInfoGroup({
@@ -31,8 +40,8 @@ export function ScoreboardInfoGroup({
   games,
   setHistory,
   setsToWinMatch,
+  matchFinished,
   playersPerTeam,
-  users,
 }: Props) {
   return (
     <div className="flex gap-4 flex-1">
@@ -42,7 +51,6 @@ export function ScoreboardInfoGroup({
           teamName={team1Name}
           otherSideName={team2Name}
           playersPerTeam={playersPerTeam}
-          users={users}
           isServing={serving === "team1"}
           onTeamNameChange={(value) => setTeamName("team1", value)}
         />
@@ -51,7 +59,6 @@ export function ScoreboardInfoGroup({
           teamName={team2Name}
           otherSideName={team1Name}
           playersPerTeam={playersPerTeam}
-          users={users}
           isServing={serving === "team2"}
           onTeamNameChange={(value) => setTeamName("team2", value)}
         />
@@ -63,6 +70,7 @@ export function ScoreboardInfoGroup({
         games={games}
         setHistory={setHistory}
         setsToWinMatch={setsToWinMatch}
+        matchFinished={matchFinished}
       />
     </div>
   );

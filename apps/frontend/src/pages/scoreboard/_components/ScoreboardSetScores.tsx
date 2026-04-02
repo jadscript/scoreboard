@@ -10,10 +10,20 @@ interface Props {
   setHistory: SetScore[]
   /** Vitórias em sets para fechar a partida (vem do estado / config). */
   setsToWinMatch: number
+  matchFinished: boolean
 }
 
-export function ScoreboardSetScores({ games, setHistory, setsToWinMatch }: Props) {
-  const slots = setScoreColumnCount(setsToWinMatch)
+export function ScoreboardSetScores({
+  games,
+  setHistory,
+  setsToWinMatch,
+  matchFinished,
+}: Props) {
+  const slots = setScoreColumnCount(
+    setsToWinMatch,
+    setHistory.length,
+    matchFinished,
+  )
 
   return (
     <div className="flex gap-4">

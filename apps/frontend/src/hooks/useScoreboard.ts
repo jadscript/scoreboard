@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { buildPointEventsFromHistory } from '../pages/scoreboard/matchHistoryStorage'
-import { loadGameSetup } from '../pages/game/gameSetupStorage'
+import { loadGameSetup } from '../pages/home/gameSetupStorage'
 
 const SCORE_KEY = 's'
 const TEAM1_KEY = '1'
@@ -177,8 +177,8 @@ function applySavedGameSetup(state: State): State {
   const setup = loadGameSetup()
   return {
     ...state,
-    gamesToWinSet: setup.gamesPerSet,
-    setsToWinMatch: setup.matchSets,
+    gamesToWinSet: normalizeGamesToWinSet(setup.gamesPerSet),
+    setsToWinMatch: normalizeSetsToWinMatch(setup.matchSets),
   }
 }
 
