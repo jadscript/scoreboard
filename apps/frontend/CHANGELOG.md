@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.18.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.17.0...@scoreboard/frontend@0.18.0) (2026-04-02)
+
+### Features
+
+* **backend:** add player creation functionality and corresponding DTO for player management ([8bb56fd](https://github.com/jadscript/scoreboard/commit/8bb56fd24f92c3e680427b2aecd39f8992f8f8e6))
+* **backend:** add Webpack configuration and update TypeScript settings for improved module resolution and build process ([b8f0ac5](https://github.com/jadscript/scoreboard/commit/b8f0ac5033f183721ffb36ea21fa7f159f487c31))
+* **backend:** implement player retrieval by user ID and add Prisma repository for player management ([75c0086](https://github.com/jadscript/scoreboard/commit/75c00867a0fad7f51a23bfc6b249d6cce77ab287))
+* **frontend:** enhance UI components and refactor game setup logic ([bb90a09](https://github.com/jadscript/scoreboard/commit/bb90a0996bc1850844f1b5b027b8077c7f5c21f2))
+* **frontend:** implement internationalization support with i18next and add English and Portuguese translations ([12d8d4a](https://github.com/jadscript/scoreboard/commit/12d8d4af197db6e779034d7eb11a8c3e5fe7f64d))
+
+### Bug Fixes
+
+* **backend:** update Dockerfile to include Prisma schema and configuration files for proper installation ([ec6b092](https://github.com/jadscript/scoreboard/commit/ec6b092afd72e906997967cd39280545fc6eb73d))
+
 ## [0.17.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.16.0...@scoreboard/frontend@0.17.0) (2026-04-01)
 
 ### Features
