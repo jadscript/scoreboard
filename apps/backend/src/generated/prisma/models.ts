@@ -8,5 +8,5 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/Player.js'
-export type * from './commonInputTypes.js'
+export type * from './models/Player'
+export type * from './commonInputTypes'
