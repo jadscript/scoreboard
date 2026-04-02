@@ -1,0 +1,42 @@
+{
+  "home": {
+    "loading": "Carregando…",
+    "greeting": "Olá, {{name}}!",
+    "startMatch": "Iniciar Partida",
+    "scanQRCode": "Escanear Código QR",
+    "subtitle": "Inicie uma nova partida ou escaneie um código QR para participar de uma partida",
+    "newMatch": "Nova Partida",
+    "joinMatch": "Partida Existente"
+  },
+  "onboarding": {
+    "title": "Bem vindo!",
+    "step1": {
+      "heading": "Como podemos te chamar?",
+      "description": "Usaremos este nome para identificar você no aplicativo e para comunicações.",
+      "placeholder": "Nome Sobrenome"
+    },
+    "step2": {
+      "heading": "Qual o seu gênero?",
+      "description": "Este é um aplicativo para jogos esportivos e precisamos saber seu gênero para garantir que o jogo seja justo e divertido para todos."
+    },
+    "gender": {
+      "male": "Masculino",
+      "female": "Feminino",
+      "unknown": "Prefiro não informar"
+    },
+    "back": "Voltar",
+    "next": "Avançar",
+    "finish": "Finalizar"
+  },
+  "game": {
+    "title": "Tipo de jogo",
+    "matchGender": "Gênero da partida",
+    "gamesPerSet": "Games para vencer o set",
+    "setsPerMatch": "Sets para vencer a partida",
+    "singles": "Simples",
+    "doubles": "Dupla",
+    "mixed": "Misto",
+    "male": "Masculino",
+    "female": "Feminino"
+  }
+}

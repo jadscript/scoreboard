@@ -1,0 +1,42 @@
+{
+  "home": {
+    "loading": "Loading…",
+    "greeting": "Hello, {{name}}!",
+    "startMatch": "Start Match",
+    "scanQRCode": "Scan QR Code",
+    "subtitle": "Start a new match or scan a QR code to join a match",
+    "newMatch": "New Match",
+    "joinMatch": "Join Match"
+  },
+  "onboarding": {
+    "title": "Welcome!",
+    "step1": {
+      "heading": "What should we call you?",
+      "description": "We will use this name to identify you in the app and for communications.",
+      "placeholder": "Given Name and Surname"
+    },
+    "step2": {
+      "heading": "What is your gender?",
+      "description": "This is a sports app and we need your gender to keep matches fair and fun for everyone."
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "unknown": "Prefer not to say"
+    },
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish"
+  },
+  "game": {
+    "title": "Game Type",
+    "matchGender": "Match Gender",
+    "gamesPerSet": "Games to win the set",
+    "setsPerMatch": "Sets to win the match",
+    "singles": "Singles",
+    "doubles": "Doubles",
+    "mixed": "Mixed",
+    "male": "Male",
+    "female": "Female"
+  }
+}
