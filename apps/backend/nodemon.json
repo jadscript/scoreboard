@@ -1,0 +1,7 @@
+{
+  "watch": ["src", "../../packages/core/src"],
+  "ext": "ts",
+  "delay": 500,
+  "ignore": ["src/generated/**"],
+  "exec": "nest build && (kill-port 3000 || true) && node dist/main.js"
+}
