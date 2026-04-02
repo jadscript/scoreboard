@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.8.0...@scoreboard/backend@0.9.0) (2026-04-02)
+
+### Bug Fixes
+
+* **backend:** update Dockerfile to correct path for main application entry point ([c77a0aa](https://github.com/jadscript/scoreboard/commit/c77a0aaa96ea74736df2b58b424fefd814c20607))
+
 ## [0.8.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.7.0...@scoreboard/backend@0.8.0) (2026-04-02)
 
 ### Features
