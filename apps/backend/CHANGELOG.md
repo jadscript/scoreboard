@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.9.0...@scoreboard/backend@0.10.0) (2026-04-03)
+
+### Features
+
+* **backend:** add Injectable decorator to PrismaPlayerRepository for dependency injection ([9580fc5](https://github.com/jadscript/scoreboard/commit/9580fc5889327015c3e1598b858cecbc8bb17cde))
+* **frontend:** add screen orientation locking on scoreboard page ([c54b46a](https://github.com/jadscript/scoreboard/commit/c54b46a64d43d618f89612e898a562b7eeaa1a17))
+
 ## [0.9.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.8.0...@scoreboard/backend@0.9.0) (2026-04-02)
 
 ### Bug Fixes
