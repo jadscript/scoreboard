@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.22.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.21.0...@scoreboard/frontend@0.22.0) (2026-04-03)
+
+### Features
+
+* **frontend:** integrate QR code functionality and enhance localization ([3697759](https://github.com/jadscript/scoreboard/commit/3697759f3f1108ccf38299be71a17228f8323903))
+
 ## [0.21.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.20.0...@scoreboard/frontend@0.21.0) (2026-04-03)
 
 ### Features
