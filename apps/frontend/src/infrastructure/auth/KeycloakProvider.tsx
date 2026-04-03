@@ -129,7 +129,7 @@ export function AuthProvider(props: AuthProviderProps) {
         <p className="text-lg">Falha ao conectar com o servidor de autenticação.</p>
         <button
           type="button"
-          className="rounded-md bg-white/10 px-4 py-2 text-sm hover:bg-white/20"
+          className="rounded-none bg-white/10 px-4 py-2 text-sm hover:bg-white/20"
           onClick={() => window.location.reload()}
         >
           Tentar novamente

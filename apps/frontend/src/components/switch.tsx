@@ -37,7 +37,7 @@ const Switch = ({
       )}
       <div
         className={cn(
-          "relative flex min-w-0 rounded-full p-1 shadow-inner",
+          "relative flex min-w-0 rounded-none p-1 shadow-inner",
           variant === "primary" ? "bg-lime-100" : "bg-stone-100",
           className,
         )}
@@ -45,7 +45,7 @@ const Switch = ({
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none absolute top-1 bottom-1 left-1 z-0 rounded-full transition-transform duration-300 ease-out motion-reduce:transition-none",
+            "pointer-events-none absolute top-1 bottom-1 left-1 z-0 rounded-none transition-transform duration-300 ease-out motion-reduce:transition-none",
             variant === "primary" ? "bg-lime-600" : "bg-stone-600",
           )}
           style={{
@@ -61,7 +61,7 @@ const Switch = ({
             aria-checked={value === option.value}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative z-10 flex min-w-0 flex-1 basis-0 items-center justify-center rounded-full px-4 py-3 font-medium transition-colors duration-300 cursor-pointer",
+              "relative z-10 flex min-w-0 flex-1 basis-0 items-center justify-center rounded-none px-4 py-3 font-medium transition-colors duration-300 cursor-pointer",
               size === "small" ? "text-xs" : "text-sm",
               value === option.value
                 ? "text-white"

@@ -31,7 +31,7 @@ export function ScoreboardConfirmModal({
       role="presentation"
     >
       <div
-        className="relative w-full max-w-md bg-white border border-stone-300 rounded-2xl shadow-2xl"
+        className="relative w-full max-w-md bg-white border border-stone-300 rounded-none shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -40,7 +40,7 @@ export function ScoreboardConfirmModal({
         <button
           type="button"
           onClick={onCancel}
-          className="absolute top-3 right-3 p-1.5 rounded-lg text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors cursor-pointer"
+          className="absolute top-3 right-3 p-1.5 rounded-none text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors cursor-pointer"
           aria-label="Fechar"
         >
           <X size={18} strokeWidth={2} />
@@ -58,14 +58,14 @@ export function ScoreboardConfirmModal({
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 py-2.5 rounded-full border border-stone-300 text-stone-500 hover:bg-stone-100 text-sm font-medium transition-colors cursor-pointer"
+              className="flex-1 py-2.5 rounded-none border border-stone-300 text-stone-500 hover:bg-stone-100 text-sm font-medium transition-colors cursor-pointer"
             >
               {t("common.cancel")}
             </button>
             <button
               type="button"
               onClick={onConfirm}
-              className={`flex-1 py-2.5 rounded-full text-white text-sm font-semibold transition-colors cursor-pointer ${confirmClass[confirmTone]}`}
+              className={`flex-1 py-2.5 rounded-none text-white text-sm font-semibold transition-colors cursor-pointer ${confirmClass[confirmTone]}`}
             >
               {confirmLabel}
             </button>

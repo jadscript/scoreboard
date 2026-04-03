@@ -29,7 +29,7 @@ export function ScoreboardTeamRow({
   return (
     <div className={cn("flex min-w-0 items-center gap-2", className ?? "")}>
       <div className="flex min-w-0 items-center gap-2">
-        <div className={`h-3 w-3 shrink-0 rounded-full ${accentDot[team]}`} />
+        <div className={`h-3 w-3 shrink-0 rounded-none ${accentDot[team]}`} />
         <button
           type="button"
           title={label}

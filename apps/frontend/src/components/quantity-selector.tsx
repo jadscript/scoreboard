@@ -64,7 +64,7 @@ const QuantitySelector = ({
           onClick={() => onChange(Math.max(min, safeValue - 1))}
           disabled={safeValue <= min}
           className={cn(
-            "cursor-pointer p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white",
+            "cursor-pointer p-2 rounded-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white",
             variant === "primary"
               ? "bg-lime-600 hover:bg-lime-500"
               : "bg-stone-600 hover:bg-stone-500",
@@ -95,7 +95,7 @@ const QuantitySelector = ({
           onClick={() => onChange(Math.min(max, safeValue + 1))}
           disabled={safeValue >= max}
           className={cn(
-            "cursor-pointer p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white",
+            "cursor-pointer p-2 rounded-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white",
             variant === "primary"
               ? "bg-lime-600 hover:bg-lime-500"
               : "bg-stone-600 hover:bg-stone-500",

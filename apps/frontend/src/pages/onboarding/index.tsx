@@ -114,7 +114,7 @@ export function OnboardingPage() {
                       onClick={() =>
                         setForm({ ...form, gender: option.value as Gender })
                       }
-                      className={`cursor-pointer hover:bg-lime-50 flex-1 text-center px-5 py-4 rounded-xl border-2 transition-colors font-semibold text-foreground text-lg
+                      className={`cursor-pointer hover:bg-lime-50 flex-1 text-center px-5 py-4 rounded-none border-2 transition-colors font-semibold text-foreground text-lg
                         ${
                           form.gender === option.value
                             ? "border-lime-600 bg-lime-100"
@@ -137,7 +137,7 @@ export function OnboardingPage() {
             {Array.from({ length: totalSteps }).map((_, index) => (
               <div
                 key={index}
-                className={`w-3 h-3 rounded-full ${step === index + 1 ? "bg-lime-600" : "bg-stone-200"} transition-colors`}
+                className={`w-3 h-3 rounded-none ${step === index + 1 ? "bg-lime-600" : "bg-stone-200"} transition-colors`}
               />
             ))}
           </div>

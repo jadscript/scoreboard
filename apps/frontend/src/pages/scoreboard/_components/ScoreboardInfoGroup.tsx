@@ -29,7 +29,7 @@ interface Props {
 }
 
 const Divider = () => (
-  <div className="w-[2px] min-h-12 shrink-0 self-stretch bg-stone-200 rounded-full" />
+  <div className="w-[2px] min-h-12 shrink-0 self-stretch bg-stone-200 rounded-none" />
 );
 
 export function ScoreboardInfoGroup({

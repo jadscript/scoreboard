@@ -42,7 +42,7 @@ export function ScoreboardToolbar({
         <button
           type="button"
           onClick={onInvertTeams}
-          className="transition-colors cursor-pointer bg-linear-to-r from-lime-500 via-lime-400 to-stone-500 hover:from-stone-600 hover:to-lime-600 text-white rounded-full p-3"
+          className="transition-colors cursor-pointer bg-linear-to-r from-lime-500 via-lime-400 to-stone-500 hover:from-stone-600 hover:to-lime-600 text-white rounded-none p-3"
           title="Inverter times"
         >
           <ArrowDownUp size={16} />
@@ -54,7 +54,7 @@ export function ScoreboardToolbar({
           type="button"
           disabled={!canUndo}
           onClick={onRequestUndo}
-          className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-full p-3"
+          className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-none p-3"
           title="Desfazer última ação"
         >
           <Undo2 size={16} />
@@ -64,7 +64,7 @@ export function ScoreboardToolbar({
           type="button"
           disabled={resetDisabled}
           onClick={onRequestReset}
-          className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-full p-3"
+          className="disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-none p-3"
           title={
             matchFinished
               ? "Salve no histórico ou desfaça o último lance para poder resetar"
@@ -82,7 +82,7 @@ export function ScoreboardToolbar({
           <button
             type="button"
             onClick={onSaveMatchToHistory}
-            className={`animate-transform transition-colors cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white rounded-full p-3 ${
+            className={`animate-transform transition-colors cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white rounded-none p-3 ${
               saveToHistoryError ? "ring-2 ring-red-500 ring-offset-2" : ""
             }`}
             title={
@@ -100,7 +100,7 @@ export function ScoreboardToolbar({
         <button
           type="button"
           onClick={onToggleFullscreen}
-          className="transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-full p-3"
+          className="transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-none p-3"
           title={isFullscreen ? "Sair do fullscreen" : "Fullscreen"}
         >
           {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
@@ -109,7 +109,7 @@ export function ScoreboardToolbar({
         <button
           type="button"
           onClick={onRequestSettings}
-          className="transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-full p-3"
+          className="transition-colors cursor-pointer bg-stone-500 hover:bg-stone-600 text-white rounded-none p-3"
           title="Configurações da partida"
         >
           <Home size={16} />

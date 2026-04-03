@@ -121,7 +121,7 @@ export function ScoreboardScorePanel({
       {/* Score */}
       <div className="flex items-center flex-1 h-full row-span-6 md:row-span-8 order-2">
         <h1
-          className={`font-bold w-full text-center md:text-[25vw] text-[40vw] leading-none score-font ${score === "40" ? "animate-transform" : ""}`}
+          className={`font-bold w-full text-center md:text-[25vw] text-[50vw] leading-none score-font ${score === "40" ? "animate-transform" : ""}`}
         >
           {score}
         </h1>
