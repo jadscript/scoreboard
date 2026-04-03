@@ -1,13 +1,14 @@
-import { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { loadGameSetup } from "../home/gameSetupStorage";
 import { playersPerTeamForFormat } from "../home/types";
 import { useScoreboard } from "../../hooks/useScoreboard";
 import { appendSavedMatch } from "./matchHistoryStorage";
 import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
-import { ScoreboardInfoGroup } from "./_components/ScoreboardInfoGroup";
+// import { ScoreboardInfoGroup } from "./_components/ScoreboardInfoGroup";
 import { ScoreboardScorePanel } from "./_components/ScoreboardScorePanel";
 import { ScoreboardToolbar } from "./_components/ScoreboardToolbar";
+import { useTranslation } from "react-i18next";
 
 export function ScoreboardPage() {
   const navigate = useNavigate();
@@ -18,54 +19,10 @@ export function ScoreboardPage() {
   const [scoredTeam, setScoredTeam] = useState<"team1" | "team2" | null>(null);
   const [matchHistorySaveError, setMatchHistorySaveError] = useState(false);
   const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { t } = useTranslation();
 
   const clearMatchHistorySaveError = useCallback(() => {
     setMatchHistorySaveError(false);
-  }, []);
-
-  // Try to lock orientation, if supported, on mount only
-  // Now includes iOS support for web app manifest and fullscreen workaround.
-  // See: https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock
-  // Note: iOS Safari does NOT support screen.orientation.lock directly.
-  // On iOS, attempt to use fullscreen as a cue to request landscape,
-  // and provide in-app guidance if needed.
-  useEffect(() => {
-    // Check if we're on iOS
-    const isIOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-      !(window as Window & { MSStream?: unknown }).MSStream;
-    const tryLockOrientation = () => {
-      const orientation = (screen as unknown as { orientation: ScreenOrientation }).orientation;
-      const lock = (orientation as unknown as { lock: (orientation: "landscape" | "portrait") => Promise<void> }).lock;
-      if (orientation && typeof lock === "function") {
-        lock("landscape")
-          .then(() => {
-            // Locked successfully
-            console.log("Locked to landscape");
-          })
-          .catch((error: unknown) => {
-            // Most likely not supported, or needs user gesture
-            console.error(error);
-          });
-      }
-    };
-    if (isIOS) {
-      // iOS: Try to trigger lock in response to fullscreen changes where possible
-      const handleFullscreenChange = () => {
-        // iOS does not support .lock(), but being in fullscreen sometimes
-        // encourages device rotation by the user.
-        // Optionally: show a message/toast/banner for users here.
-        // For now, no-op except for documentation.
-      };
-      document.addEventListener("fullscreenchange", handleFullscreenChange);
-      // Show banner, modal, or guidance here if needed. (Optional)
-      return () => {
-        document.removeEventListener("fullscreenchange", handleFullscreenChange);
-      };
-    } else {
-      // On non-iOS: Attempt to lock orientation immediately
-      tryLockOrientation();
-    }
   }, []);
 
   // const { users } = useGameUsers();
@@ -103,11 +60,11 @@ export function ScoreboardPage() {
     setsToWinMatch,
     setHistory,
     pointEvents,
-    serving,
+    // serving,
     courtSwitched,
     team1Name,
     team2Name,
-    setTeamName,
+    // setTeamName,
     handleInvertTeams,
     matchFinished,
   } = useScoreboard({
@@ -162,11 +119,11 @@ export function ScoreboardPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-between p-4 w-full h-screen">
-      <div className="w-full grid grid-rows-1 grid-cols-2 items-center justify-center h-full border-8 border-black">
-        <div className="absolute top-0 left-0 right-0 flex justify-center max-w-2xl mx-auto px-1">
-          <div className="flex flex-wrap px-6 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
-            <ScoreboardInfoGroup
+    <div className="flex flex-col items-center justify-between p-4 w-full h-screen bg-white">
+      <div className="w-full grid grid-rows-2 grid-cols-1 md:grid-rows-1 md:grid-cols-2 items-center justify-center h-full border-5 md:border-8 border-black">
+        <div className="absolute md:top-0 left-0 md:left-auto right-0 flex justify-center max-w-2xl mx-auto md:mr-3 px-1">
+          <div className="flex flex-col flex-wrap bg-white border-5 md:border-8 border-black text-black items-center gap-x-4 gap-y-2 md:mt-4">
+            {/* <ScoreboardInfoGroup
               team1Name={team1Name}
               team2Name={team2Name}
               setTeamName={setTeamName}
@@ -177,27 +134,7 @@ export function ScoreboardPage() {
               matchFinished={matchFinished}
               playersPerTeam={playersPerTeam}
               users={[]}
-            />
-          </div>
-        </div>
-
-        <ScoreboardScorePanel
-          team="team1"
-          score={team1Score}
-          courtSwitched={courtSwitched}
-          scoredTeam={scoredTeam}
-          onScore={() => handleScoreWithFlash("team1")}
-        />
-        <ScoreboardScorePanel
-          team="team2"
-          score={team2Score}
-          courtSwitched={courtSwitched}
-          scoredTeam={scoredTeam}
-          onScore={() => handleScoreWithFlash("team2")}
-        />
-
-        <div className="absolute bottom-0 left-0 right-0 flex justify-center max-w-2xl mx-auto px-1">
-          <div className="flex flex-wrap px-4 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
+            /> */}
             <ScoreboardToolbar
               isFullscreen={isFullscreen}
               canUndo={canUndo}
@@ -213,13 +150,58 @@ export function ScoreboardPage() {
             />
           </div>
         </div>
+
+        <ScoreboardScorePanel
+          team="team1"
+          score={team1Score}
+          courtSwitched={courtSwitched}
+          scoredTeam={scoredTeam}
+          onScore={() => handleScoreWithFlash("team1")}
+          games={games}
+          setHistory={setHistory}
+          setsToWinMatch={setsToWinMatch}
+          matchFinished={matchFinished}
+          playersPerTeam={playersPerTeam}
+          users={[]}
+        />
+        <ScoreboardScorePanel
+          team="team2"
+          score={team2Score}
+          courtSwitched={courtSwitched}
+          scoredTeam={scoredTeam}
+          onScore={() => handleScoreWithFlash("team2")}
+          games={games}
+          setHistory={setHistory}
+          setsToWinMatch={setsToWinMatch}
+          matchFinished={matchFinished}
+          playersPerTeam={playersPerTeam}
+          users={[]}
+        />
+
+        {/* <div className="absolute bottom-0 left-0 md:right-0 flex justify-center max-w-2xl mx-auto px-1">
+          <div className="flex flex-wrap px-4 py-2 m-3 bg-white text-black rounded-2xl items-center gap-x-4 gap-y-2 shadow-md">
+            <ScoreboardToolbar
+              isFullscreen={isFullscreen}
+              canUndo={canUndo}
+              canReset={canReset}
+              matchFinished={matchFinished}
+              saveToHistoryError={matchHistorySaveError}
+              onInvertTeams={handleInvertTeamsAndClearHistorySave}
+              onToggleFullscreen={toggleFullscreen}
+              onRequestUndo={() => setUndoConfirmOpen(true)}
+              onRequestReset={() => setResetConfirmOpen(true)}
+              onRequestSettings={() => setSettingsConfirmOpen(true)}
+              onSaveMatchToHistory={handleSaveMatchToHistory}
+            />
+          </div>
+        </div> */}
       </div>
 
       {settingsConfirmOpen && (
         <ScoreboardConfirmModal
-          title="Ir para configuração"
-          message="Ao sair do placar para a configuração, o jogo atual será reiniciado. Deseja continuar?"
-          confirmLabel="Ir para configuração"
+          title={t("scoreboard.homeConfirmModal.title")}
+          message={t("scoreboard.homeConfirmModal.message")}
+          confirmLabel={t("scoreboard.homeConfirmModal.confirmLabel")}
           confirmTone="warning"
           onCancel={() => setSettingsConfirmOpen(false)}
           onConfirm={() => {
@@ -231,9 +213,9 @@ export function ScoreboardPage() {
 
       {resetConfirmOpen && (
         <ScoreboardConfirmModal
-          title="Resetar partida"
-          message="Zerar placar, games e sets? O histórico de desfazer também será limpo."
-          confirmLabel="Resetar"
+          title={t("scoreboard.resetConfirmModal.title")}
+          message={t("scoreboard.resetConfirmModal.message")}
+          confirmLabel={t("scoreboard.resetConfirmModal.confirmLabel")}
           confirmTone="danger"
           onCancel={() => setResetConfirmOpen(false)}
           onConfirm={() => {
@@ -245,9 +227,9 @@ export function ScoreboardPage() {
 
       {undoConfirmOpen && undoActionDescription !== null && (
         <ScoreboardConfirmModal
-          title="Desfazer última ação"
-          message={`Será desfeito: ${undoActionDescription}.`}
-          confirmLabel="Desfazer"
+          title={t("scoreboard.undoConfirmModal.title")}
+          message={t("scoreboard.undoConfirmModal.message", { action: undoActionDescription })}
+          confirmLabel={t("scoreboard.undoConfirmModal.confirmLabel")}
           confirmTone="warning"
           onCancel={() => setUndoConfirmOpen(false)}
           onConfirm={() => {

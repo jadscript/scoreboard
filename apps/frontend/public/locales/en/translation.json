@@ -1,4 +1,8 @@
 {
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
   "home": {
     "loading": "Loading…",
     "greeting": "Hello, {{name}}!",
@@ -38,5 +42,27 @@
     "mixed": "Mixed",
     "male": "Male",
     "female": "Female"
+  },
+  "scoreboard": {
+    "homeConfirmModal": {
+      "title": "Exit scoreboard",
+      "message": "When exiting the scoreboard to the home, the current game will be restarted. Do you want to continue?",
+      "confirmLabel": "Exit"
+    },
+    "resetConfirmModal": {
+      "title": "Reset game",
+      "message": "Reset score, games and sets? The undo history will also be cleared. Do you want to continue?",
+      "confirmLabel": "Reset"
+    },
+    "undoConfirmModal": {
+      "title": "Undo last action",
+      "message": "The last action will be undone: {{action}}. Do you want to continue?",
+      "confirmLabel": "Undo"
+    },
+    "saveMatchToHistoryConfirmModal": {
+      "title": "Save match to history",
+      "message": "The match will be saved to the history. Do you want to continue?",
+      "confirmLabel": "Save"
+    }
   }
 }

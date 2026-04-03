@@ -1,4 +1,4 @@
-import { ScoreboardSetScores } from "./ScoreboardSetScores";
+// import { ScoreboardSetScores } from "./ScoreboardSetScores";
 import { ScoreboardTeamRow } from "./ScoreboardTeamRow";
 
 interface GameUser {
@@ -29,7 +29,7 @@ interface Props {
 }
 
 const Divider = () => (
-  <div className="w-[2px] min-h-12 shrink-0 self-stretch bg-gray-300 rounded-full" />
+  <div className="w-[2px] min-h-12 shrink-0 self-stretch bg-stone-200 rounded-full" />
 );
 
 export function ScoreboardInfoGroup({
@@ -37,14 +37,14 @@ export function ScoreboardInfoGroup({
   team2Name,
   setTeamName,
   serving,
-  games,
-  setHistory,
-  setsToWinMatch,
-  matchFinished,
+  // games,
+  // setHistory,
+  // setsToWinMatch,
+  // matchFinished,
   playersPerTeam,
 }: Props) {
   return (
-    <div className="flex gap-4 flex-1">
+    <div className="flex gap-4 flex-1 w-full px-4 pt-4">
       <div className="flex flex-col gap-1 flex-1 min-w-0">
         <ScoreboardTeamRow
           team="team1"
@@ -66,12 +66,12 @@ export function ScoreboardInfoGroup({
 
       <Divider />
 
-      <ScoreboardSetScores
+      {/* <ScoreboardSetScores
         games={games}
         setHistory={setHistory}
         setsToWinMatch={setsToWinMatch}
         matchFinished={matchFinished}
-      />
+      /> */}
     </div>
   );
 }

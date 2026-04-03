@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   title: string
@@ -11,7 +12,7 @@ interface Props {
 
 const confirmClass: Record<Props["confirmTone"], string> = {
   danger: "bg-red-600 hover:bg-red-500",
-  warning: "bg-amber-600 hover:bg-amber-500",
+  warning: "bg-yellow-500 hover:bg-yellow-400",
 }
 
 export function ScoreboardConfirmModal({
@@ -22,6 +23,7 @@ export function ScoreboardConfirmModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 cursor-default"
@@ -29,7 +31,7 @@ export function ScoreboardConfirmModal({
       role="presentation"
     >
       <div
-        className="relative w-full max-w-md bg-white border border-gray-300 rounded-2xl shadow-2xl"
+        className="relative w-full max-w-md bg-white border border-stone-300 rounded-2xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -38,7 +40,7 @@ export function ScoreboardConfirmModal({
         <button
           type="button"
           onClick={onCancel}
-          className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors cursor-pointer"
+          className="absolute top-3 right-3 p-1.5 rounded-lg text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors cursor-pointer"
           aria-label="Fechar"
         >
           <X size={18} strokeWidth={2} />
@@ -49,21 +51,21 @@ export function ScoreboardConfirmModal({
             <h2 id="scoreboard-confirm-title" className="text-lg font-semibold text-black">
               {title}
             </h2>
-            <p className="text-sm text-gray-500">{message}</p>
+            <p className="text-sm text-stone-500">{message}</p>
           </div>
 
           <div className="flex gap-3">
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-100 text-sm font-medium transition-colors cursor-pointer"
+              className="flex-1 py-2.5 rounded-full border border-stone-300 text-stone-500 hover:bg-stone-100 text-sm font-medium transition-colors cursor-pointer"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button
               type="button"
               onClick={onConfirm}
-              className={`flex-1 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors cursor-pointer ${confirmClass[confirmTone]}`}
+              className={`flex-1 py-2.5 rounded-full text-white text-sm font-semibold transition-colors cursor-pointer ${confirmClass[confirmTone]}`}
             >
               {confirmLabel}
             </button>

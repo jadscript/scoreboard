@@ -6,7 +6,7 @@
 }
 
 :root {
-  --color-background: #eff2e7;
+  --color-background: #f2f1f1;
   --color-text: #191B28;
 }
 
@@ -49,15 +49,15 @@ html, body {
 }
 
 @keyframes flash-green {
-  0%   { background-color: transparent; color: #15803d; }
-  10%  { background-color: #15803d; color: #ffffff; }
-  80%  { background-color: #15803d; color: #ffffff; }
-  100% { background-color: transparent; color: #15803d; }
+  0%   { background-color: transparent; color: #497D00; }
+  10%  { background-color: #497D00; color: #ffffff; }
+  80%  { background-color: #497D00; color: #ffffff; }
+  100% { background-color: transparent; color: #497D00; }
 }
 
 @keyframes flash-blue {
-  0%   { background-color: transparent; color: #1d4ed8; }
-  10%  { background-color: #1d4ed8; color: #ffffff; }
-  80%  { background-color: #1d4ed8; color: #ffffff; }
-  100% { background-color: transparent; color: #1d4ed8; }
+  0%   { background-color: transparent; color: #44403B; }
+  10%  { background-color: #44403B; color: #ffffff; }
+  80%  { background-color: #44403B; color: #ffffff; }
+  100% { background-color: transparent; color: #44403B; }
 }
