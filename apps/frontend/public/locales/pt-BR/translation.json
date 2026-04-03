@@ -10,7 +10,8 @@
     "scanQRCode": "Escanear Código QR",
     "subtitle": "Inicie uma nova partida ou escaneie um código QR para participar de uma partida",
     "newMatch": "Nova Partida",
-    "joinMatch": "Partida Existente"
+    "joinMatch": "Partida Existente",
+    "qrcodeUsage": "O organizador da partida deve escanear este código QR para que você possa participar da partida."
   },
   "onboarding": {
     "title": "Bem vindo!",

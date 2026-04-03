@@ -10,7 +10,8 @@
     "scanQRCode": "Scan QR Code",
     "subtitle": "Start a new match or scan a QR code to join a match",
     "newMatch": "New Match",
-    "joinMatch": "Join Match"
+    "joinMatch": "Join Match",
+    "qrcodeUsage": "The organizer of the match must scan this QR code to let you join the match."
   },
   "onboarding": {
     "title": "Welcome!",

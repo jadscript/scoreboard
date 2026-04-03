@@ -86,7 +86,7 @@ export function ScoreboardScorePanel({
             className={cn(
               "w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border-3 z-10",
               team === "team1"
-                ? "bg-lime-200 text-lime-600 border-lime-600"
+                ? "bg-lime-100 text-lime-600 border-lime-600"
                 : "bg-stone-200 text-stone-600 border-stone-600",
             )}
             onClick={handleUserAdd}
@@ -99,7 +99,7 @@ export function ScoreboardScorePanel({
               "w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border-3 z-10",
               team === "team2"
                 ? "bg-stone-200 text-stone-600 border-stone-600"
-                : "bg-lime-200 text-lime-600 border-lime-600",
+                : "bg-lime-100 text-lime-600 border-lime-600",
             )}
             onClick={handleUserAdd}
           >
