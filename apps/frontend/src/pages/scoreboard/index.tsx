@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { loadGameSetup } from "../home/gameSetupStorage";
 import { playersPerTeamForFormat } from "../home/types";
@@ -21,6 +21,27 @@ export function ScoreboardPage() {
 
   const clearMatchHistorySaveError = useCallback(() => {
     setMatchHistorySaveError(false);
+  }, []);
+
+  // Try to lock orientation, if supported, on mount only
+  // See: https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock
+  // Note: Not all browsers support screen.orientation.lock
+  // We wrap in useEffect so this runs once, not on every render
+
+  useEffect(() => {
+    const orientation = (screen as unknown as { orientation: ScreenOrientation }).orientation;
+    const lock = (orientation as unknown as { lock: (orientation: "landscape" | "portrait") => Promise<void> }).lock;
+    if (orientation && typeof lock === "function") {
+      lock("landscape")
+        .then(() => {
+          // Locked successfully
+          console.log("Locked to landscape");
+        })
+        .catch((error: unknown) => {
+          // Most likely not supported, or needs user gesture
+          console.error(error);
+        });
+    }
   }, []);
 
   // const { users } = useGameUsers();
