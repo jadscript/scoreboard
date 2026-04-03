@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.20.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.19.0...@scoreboard/frontend@0.20.0) (2026-04-03)
+
+### Features
+
+* **frontend:** enhance screen orientation handling on scoreboard page ([fbfdda2](https://github.com/jadscript/scoreboard/commit/fbfdda2f13d683d7abab83b5ee831b3fa53d0f59))
+
 ## [0.19.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.18.0...@scoreboard/frontend@0.19.0) (2026-04-03)
 
 ### Features
