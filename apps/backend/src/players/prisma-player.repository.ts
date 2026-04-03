@@ -2,7 +2,9 @@ import { IPlayerRepository } from '@scoreboard/core/infrastructure/database/play
 import { Player } from 'src/generated/prisma/client';
 import { Player as DomainPlayer } from '@scoreboard/core/domain/player.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class PrismaPlayerRepository implements IPlayerRepository {
   constructor(private readonly prisma: PrismaService) {}
 
