@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.21.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.20.0...@scoreboard/frontend@0.21.0) (2026-04-03)
+
+### Features
+
+* **frontend:** enhance scoreboard UI and localization ([0741f3b](https://github.com/jadscript/scoreboard/commit/0741f3bf18fddaf0d7d36f1ec12bc5730f204dbb))
+
 ## [0.20.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.19.0...@scoreboard/frontend@0.20.0) (2026-04-03)
 
 ### Features
