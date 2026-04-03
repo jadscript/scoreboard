@@ -120,9 +120,9 @@ export function ScoreboardPage() {
 
   return (
     <div className="flex flex-col items-center justify-between p-2 md:p-4 w-full h-screen bg-white">
-      <div className="w-full grid grid-rows-2 grid-cols-1 md:grid-rows-1 md:grid-cols-2 items-center justify-center h-full border-5 md:border-8 border-black">
+      <div className="w-full grid grid-rows-2 grid-cols-1 md:grid-rows-1 md:grid-cols-2 items-center justify-center h-full border-5 md:border-8 border-stone-900">
         <div className="absolute md:top-0 left-0 md:left-auto right-0 flex justify-center max-w-2xl mx-auto md:mr-3 px-1">
-          <div className="flex flex-col flex-wrap bg-white border-5 md:border-8 border-black text-black items-center gap-x-4 gap-y-2 md:mt-4">
+          <div className="flex flex-col flex-wrap bg-white border-5 md:border-8 border-stone-900 text-stone-900 items-center gap-x-4 gap-y-2 md:mt-4">
             {/* <ScoreboardInfoGroup
               team1Name={team1Name}
               team2Name={team2Name}
@@ -179,7 +179,7 @@ export function ScoreboardPage() {
         />
 
         {/* <div className="absolute bottom-0 left-0 md:right-0 flex justify-center max-w-2xl mx-auto px-1">
-          <div className="flex flex-wrap px-4 py-2 m-3 bg-white text-black rounded-none items-center gap-x-4 gap-y-2 shadow-md">
+          <div className="flex flex-wrap px-4 py-2 m-3 bg-white text-stone-900 rounded-none items-center gap-x-4 gap-y-2 shadow-md">
             <ScoreboardToolbar
               isFullscreen={isFullscreen}
               canUndo={canUndo}

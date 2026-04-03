@@ -54,8 +54,8 @@ export function ScoreboardScorePanel({
 }: Props) {
   const isFirstColumn = team === "team1" ? !courtSwitched : courtSwitched;
   const layoutClass = isFirstColumn
-    ? "order-1 md:border-r-4 md:border-b-0 border-b-[2px] border-black"
-    : "order-2 md:border-l-4 md:border-t-0 border-t-[3px] border-black";
+    ? "order-1 md:border-r-4 md:border-b-0 border-b-[2px] border-stone-900"
+    : "order-2 md:border-l-4 md:border-t-0 border-t-[3px] border-stone-900";
   const { flash, idle } = teamSurface[team];
   const surfaceClass = scoredTeam === team ? flash : idle;
 
@@ -66,7 +66,7 @@ export function ScoreboardScorePanel({
 
   return (
     <div
-      className={`grid grid-rows-12 grid-cols-1 h-full cursor-pointer border-black ${layoutClass} ${surfaceClass}`}
+      className={`grid grid-rows-12 grid-cols-1 h-full cursor-pointer border-stone-900 ${layoutClass} ${surfaceClass}`}
       onClick={onScore}
     >
       {/* Players avatar */}

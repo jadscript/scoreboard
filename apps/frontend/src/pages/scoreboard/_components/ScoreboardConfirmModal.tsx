@@ -26,7 +26,7 @@ export function ScoreboardConfirmModal({
   const { t } = useTranslation();
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 cursor-default"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 px-4 cursor-default"
       onClick={onCancel}
       role="presentation"
     >
@@ -48,7 +48,7 @@ export function ScoreboardConfirmModal({
 
         <div className="px-6 pt-6 pb-5 flex flex-col gap-4 pr-12">
           <div className="flex flex-col gap-1">
-            <h2 id="scoreboard-confirm-title" className="text-lg font-semibold text-black">
+            <h2 id="scoreboard-confirm-title" className="text-lg font-semibold text-stone-900">
               {title}
             </h2>
             <p className="text-sm text-stone-500">{message}</p>

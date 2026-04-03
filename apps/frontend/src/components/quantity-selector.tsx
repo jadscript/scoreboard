@@ -51,7 +51,7 @@ const QuantitySelector = ({
       {label && (
         <span
           className={cn(
-            "font-semibold text-foreground opacity-60",
+            "font-semibold text-stone-900 opacity-60",
             size === "small" ? "text-xs" : "text-sm",
           )}
         >

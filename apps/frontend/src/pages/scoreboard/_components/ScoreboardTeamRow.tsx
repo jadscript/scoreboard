@@ -33,7 +33,7 @@ export function ScoreboardTeamRow({
         <button
           type="button"
           title={label}
-          className="min-w-0 max-w-[min(100%,14rem)] truncate border-b border-transparent text-left font-bold text-sm text-black outline-none transition-colors hover:border-stone-300 focus-visible:border-black cursor-pointer"
+          className="min-w-0 max-w-[min(100%,14rem)] truncate border-b border-transparent text-left font-bold text-sm text-stone-900 outline-none transition-colors hover:border-stone-300 focus-visible:border-stone-900 cursor-pointer"
           aria-label={`Time ${n}: ${label}. Abrir para escolher jogadores`}
         >
           {label}

@@ -73,10 +73,10 @@ export function OnboardingPage() {
               style={{ width: `${100 / totalSteps}%` }}
             >
               <div className="flex flex-col gap-4">
-                <h2 className="text-2xl font-semibold text-center text-foreground">
+                <h2 className="text-2xl font-semibold text-center text-stone-900">
                   {t("onboarding.step1.heading")}
                 </h2>
-                <p className="text-sm text-center text-foreground opacity-70 leading-6">
+                <p className="text-sm text-center text-stone-900 opacity-70 leading-6">
                   {t("onboarding.step1.description")}
                 </p>
               </div>
@@ -94,10 +94,10 @@ export function OnboardingPage() {
               style={{ width: `${100 / totalSteps}%` }}
             >
               <div className="flex flex-col gap-4">
-                <h2 className="text-2xl font-semibold text-center text-foreground">
+                <h2 className="text-2xl font-semibold text-center text-stone-900">
                   {t("onboarding.step2.heading")}
                 </h2>
-                <p className="text-sm text-center text-foreground opacity-70 leading-6">
+                <p className="text-sm text-center text-stone-900 opacity-70 leading-6">
                   {t("onboarding.step2.description")}
                 </p>
               </div>
@@ -114,7 +114,7 @@ export function OnboardingPage() {
                       onClick={() =>
                         setForm({ ...form, gender: option.value as Gender })
                       }
-                      className={`cursor-pointer hover:bg-lime-50 flex-1 text-center px-5 py-4 rounded-none border-2 transition-colors font-semibold text-foreground text-lg
+                      className={`cursor-pointer hover:bg-lime-50 flex-1 text-center px-5 py-4 rounded-none border-2 transition-colors font-semibold text-stone-900 text-lg
                         ${
                           form.gender === option.value
                             ? "border-lime-600 bg-lime-100"

@@ -33,7 +33,7 @@ const Switch = ({
   return (
     <div className={cn("flex flex-col gap-2 w-full", labelPosition === "left" ? "items-start" : labelPosition === "right" ? "items-end" : "items-center")}>
       {label && (
-        <span className={cn("font-semibold text-foreground opacity-60", size === "small" ? "text-xs" : "text-sm")}>{label}</span>
+        <span className={cn("font-semibold text-stone-900 opacity-60", size === "small" ? "text-xs" : "text-sm")}>{label}</span>
       )}
       <div
         className={cn(

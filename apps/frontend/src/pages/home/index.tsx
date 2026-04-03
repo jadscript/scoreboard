@@ -92,12 +92,12 @@ export function HomePage() {
 
   return (
     <Layout showNavbar={false} className="" noPadding={true}>
-      <div className="flex flex-col justify-between items-center flex-1 min-h-0 gap-6 px-4">
+      <div className="flex flex-col justify-between items-center flex-1 min-h-0 gap-6 px-4 text-stone-900">
         <div className="flex flex-col items-center flex-1 pt-8 gap-6">
-          <h1 className="text-3xl font-semibold text-center text-foreground drop-shadow">
+          <h1 className="text-3xl font-semibold text-center drop-shadow">
             {t("home.greeting", { name: data?.name.split(" ")[0] })}
           </h1>
-          <p className="text-sm text-center text-foreground opacity-60 max-w-[240px] leading-6">
+          <p className="text-sm text-center text-stone-900 opacity-60 max-w-[240px] leading-6">
             {t("home.subtitle")}
           </p>
           <Switch
