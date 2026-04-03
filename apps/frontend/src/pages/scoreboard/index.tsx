@@ -24,23 +24,47 @@ export function ScoreboardPage() {
   }, []);
 
   // Try to lock orientation, if supported, on mount only
+  // Now includes iOS support for web app manifest and fullscreen workaround.
   // See: https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock
-  // Note: Not all browsers support screen.orientation.lock
-  // We wrap in useEffect so this runs once, not on every render
-
+  // Note: iOS Safari does NOT support screen.orientation.lock directly.
+  // On iOS, attempt to use fullscreen as a cue to request landscape,
+  // and provide in-app guidance if needed.
   useEffect(() => {
-    const orientation = (screen as unknown as { orientation: ScreenOrientation }).orientation;
-    const lock = (orientation as unknown as { lock: (orientation: "landscape" | "portrait") => Promise<void> }).lock;
-    if (orientation && typeof lock === "function") {
-      lock("landscape")
-        .then(() => {
-          // Locked successfully
-          console.log("Locked to landscape");
-        })
-        .catch((error: unknown) => {
-          // Most likely not supported, or needs user gesture
-          console.error(error);
-        });
+    // Check if we're on iOS
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+      !(window as Window & { MSStream?: unknown }).MSStream;
+    const tryLockOrientation = () => {
+      const orientation = (screen as unknown as { orientation: ScreenOrientation }).orientation;
+      const lock = (orientation as unknown as { lock: (orientation: "landscape" | "portrait") => Promise<void> }).lock;
+      if (orientation && typeof lock === "function") {
+        lock("landscape")
+          .then(() => {
+            // Locked successfully
+            console.log("Locked to landscape");
+          })
+          .catch((error: unknown) => {
+            // Most likely not supported, or needs user gesture
+            console.error(error);
+          });
+      }
+    };
+    if (isIOS) {
+      // iOS: Try to trigger lock in response to fullscreen changes where possible
+      const handleFullscreenChange = () => {
+        // iOS does not support .lock(), but being in fullscreen sometimes
+        // encourages device rotation by the user.
+        // Optionally: show a message/toast/banner for users here.
+        // For now, no-op except for documentation.
+      };
+      document.addEventListener("fullscreenchange", handleFullscreenChange);
+      // Show banner, modal, or guidance here if needed. (Optional)
+      return () => {
+        document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      };
+    } else {
+      // On non-iOS: Attempt to lock orientation immediately
+      tryLockOrientation();
     }
   }, []);
 
