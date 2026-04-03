@@ -1,6 +1,7 @@
 import { UserPlus } from "lucide-react";
 import { cn } from "../../../utils/className";
 import { ScoreboardSetScores } from "./ScoreboardSetScores";
+import tennisBallIcon from "../../../assets/icons/tennis-ball.svg?url";
 
 interface GameUser {
   id: string;
@@ -28,6 +29,7 @@ interface Props {
   matchFinished: boolean;
   playersPerTeam: 1 | 2;
   users: GameUser[];
+  isServing: boolean;
 }
 
 const teamSurface: Record<Props["team"], { flash: string; idle: string }> = {
@@ -43,6 +45,7 @@ const teamSurface: Record<Props["team"], { flash: string; idle: string }> = {
 
 export function ScoreboardScorePanel({
   team,
+  isServing,
   score,
   courtSwitched,
   scoredTeam,
@@ -84,7 +87,7 @@ export function ScoreboardScorePanel({
         >
           <div
             className={cn(
-              "w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border-3 z-10",
+              "w-12 h-12 md:w-18 md:h-18 rounded-full overflow-hidden flex items-center justify-center border-3 md:border-5 z-10",
               team === "team1"
                 ? "bg-lime-100 text-lime-600 border-lime-600"
                 : "bg-stone-200 text-stone-600 border-stone-600",
@@ -96,7 +99,7 @@ export function ScoreboardScorePanel({
           </div>
           <div
             className={cn(
-              "w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border-3 z-10",
+              "w-12 h-12 md:w-18 md:h-18 rounded-full overflow-hidden flex items-center justify-center border-3 md:border-5 z-10",
               team === "team2"
                 ? "bg-stone-200 text-stone-600 border-stone-600"
                 : "bg-lime-100 text-lime-600 border-lime-600",
@@ -128,10 +131,17 @@ export function ScoreboardScorePanel({
       </div>
       <div
         className={cn(
-          "flex items-center w-full h-full row-span-3 md:row-span-2",
+          "flex items-center w-full h-full row-span-3 md:row-span-2 p-1 md:p-2 lg:p-3 xl:p-4",
           isFirstColumn ? "order-3" : "order-1",
         )}
-      ></div>
+      >
+        <img
+          src={tennisBallIcon}
+          alt=""
+          className={`w-10 h-10 md:w-14 md:h-14 shrink-0 object-contain transition-opacity duration-200 animate-transform ${isServing ? "opacity-100" : "opacity-0"}`}
+          aria-hidden
+        />
+      </div>
     </div>
   );
 }

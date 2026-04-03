@@ -60,7 +60,7 @@ export function ScoreboardPage() {
     setsToWinMatch,
     setHistory,
     pointEvents,
-    // serving,
+    serving,
     courtSwitched,
     team1Name,
     team2Name,
@@ -121,7 +121,7 @@ export function ScoreboardPage() {
   return (
     <div className="flex flex-col items-center justify-between p-2 md:p-4 w-full h-screen bg-white">
       <div className="w-full grid grid-rows-2 grid-cols-1 md:grid-rows-1 md:grid-cols-2 items-center justify-center h-full border-5 md:border-8 border-stone-900">
-        <div className="absolute md:top-0 left-0 md:left-auto right-0 flex justify-center max-w-2xl mx-auto md:mr-3 px-1">
+        <div className="absolute md:top-0 left-0 md:left-auto right-0 flex justify-center max-w-2xl mx-auto md:mr-3 px-1 z-10">
           <div className="flex flex-col flex-wrap bg-white border-5 md:border-8 border-stone-900 text-stone-900 items-center gap-x-4 gap-y-2 md:mt-4">
             {/* <ScoreboardInfoGroup
               team1Name={team1Name}
@@ -163,6 +163,7 @@ export function ScoreboardPage() {
           matchFinished={matchFinished}
           playersPerTeam={playersPerTeam}
           users={[]}
+          isServing={serving === "team1"}
         />
         <ScoreboardScorePanel
           team="team2"
@@ -176,6 +177,7 @@ export function ScoreboardPage() {
           matchFinished={matchFinished}
           playersPerTeam={playersPerTeam}
           users={[]}
+          isServing={serving === "team2"}
         />
 
         {/* <div className="absolute bottom-0 left-0 md:right-0 flex justify-center max-w-2xl mx-auto px-1">
