@@ -1,8 +1,15 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { loadGameSetup } from "../home/gameSetupStorage";
 import { playersPerTeamForFormat } from "../home/types";
-import { useScoreboard } from "../../hooks/useScoreboard";
+import {
+  buildGameAudioKey,
+  getServingTeamForGame,
+  isGameWinningPoint,
+  teamPointClipKey,
+} from "../../infrastructure/audio/segmentedVoiceHelpers";
+import { SegmentedVoicePlayer } from "../../infrastructure/audio/segmentedVoicePlayer";
+import { useScoreboard, type Snapshot } from "../../hooks/useScoreboard";
 import { appendSavedMatch } from "./matchHistoryStorage";
 import { ScoreboardConfirmModal } from "./_components/ScoreboardConfirmModal";
 // import { ScoreboardInfoGroup } from "./_components/ScoreboardInfoGroup";
@@ -45,6 +52,36 @@ export function ScoreboardPage() {
     flashTimeoutRef.current = setTimeout(() => setScoredTeam(null), 1000);
   };
 
+  const voicePlayerRef = useRef(
+    new SegmentedVoicePlayer({
+      audioUrl: "/voices/man.mp3",
+      manifestUrl: "/voices/man.json",
+    }),
+  );
+
+  const onAfterScore = useCallback(
+    ({ team, priorSnapshot }: { team: "team1" | "team2"; priorSnapshot: Snapshot }) => {
+      const player = voicePlayerRef.current;
+      void player.resumeContext().then(() => {
+        const pointsAfter = {
+          team1: priorSnapshot.points.team1 + (team === "team1" ? 1 : 0),
+          team2: priorSnapshot.points.team2 + (team === "team2" ? 1 : 0),
+        };
+        const servingDuringPoint = getServingTeamForGame(priorSnapshot.games);
+        const clips: string[] = [teamPointClipKey(team)];
+        const tb = priorSnapshot.isTiebreak;
+        if (isGameWinningPoint(pointsAfter, tb)) {
+          clips.push("game_ended");
+        } else if (!tb) {
+          const gameKey = buildGameAudioKey(pointsAfter, servingDuringPoint, false);
+          if (gameKey) clips.push(gameKey);
+        }
+        player.playSequence(clips);
+      });
+    },
+    [],
+  );
+
   const {
     handleScore,
     handleUndo,
@@ -54,12 +91,14 @@ export function ScoreboardPage() {
     undoActionDescription,
     team1Score,
     team2Score,
+    points,
     games,
     sets,
     gamesToWinSet,
     setsToWinMatch,
     setHistory,
     pointEvents,
+    isTiebreak,
     serving,
     courtSwitched,
     team1Name,
@@ -70,7 +109,46 @@ export function ScoreboardPage() {
   } = useScoreboard({
     onScore: triggerFlash,
     onAfterUndo: clearMatchHistorySaveError,
+    onAfterScore,
   });
+
+  useEffect(() => {
+    void voicePlayerRef.current.load().catch(() => {
+      /* offline / blocked */
+    });
+  }, []);
+
+  const prevCleanRef = useRef(false);
+  useEffect(() => {
+    const clean =
+      !canUndo &&
+      points.team1 === 0 &&
+      points.team2 === 0 &&
+      games.team1 === 0 &&
+      games.team2 === 0 &&
+      sets.team1 === 0 &&
+      sets.team2 === 0 &&
+      !isTiebreak &&
+      !matchFinished;
+
+    if (clean && !prevCleanRef.current) {
+      const player = voicePlayerRef.current;
+      void player.resumeContext().then(() => {
+        player.playClip("startGame");
+      });
+    }
+    prevCleanRef.current = clean;
+  }, [
+    canUndo,
+    points.team1,
+    points.team2,
+    games.team1,
+    games.team2,
+    sets.team1,
+    sets.team2,
+    isTiebreak,
+    matchFinished,
+  ]);
 
   const handleInvertTeamsAndClearHistorySave = useCallback(() => {
     handleInvertTeams();
@@ -113,11 +191,6 @@ export function ScoreboardPage() {
     pointEvents,
   ]);
 
-  const handleScoreWithFlash = (team: "team1" | "team2") => {
-    handleScore(team);
-    triggerFlash(team);
-  };
-
   return (
     <div className="flex flex-col items-center justify-between p-2 md:p-4 w-full h-screen bg-white">
       <div className="w-full grid grid-rows-2 grid-cols-1 md:grid-rows-1 md:grid-cols-2 items-center justify-center h-full border-5 md:border-8 border-stone-900">
@@ -156,7 +229,7 @@ export function ScoreboardPage() {
           score={team1Score}
           courtSwitched={courtSwitched}
           scoredTeam={scoredTeam}
-          onScore={() => handleScoreWithFlash("team1")}
+          onScore={() => handleScore("team1")}
           games={games}
           setHistory={setHistory}
           setsToWinMatch={setsToWinMatch}
@@ -170,7 +243,7 @@ export function ScoreboardPage() {
           score={team2Score}
           courtSwitched={courtSwitched}
           scoredTeam={scoredTeam}
-          onScore={() => handleScoreWithFlash("team2")}
+          onScore={() => handleScore("team2")}
           games={games}
           setHistory={setHistory}
           setsToWinMatch={setsToWinMatch}

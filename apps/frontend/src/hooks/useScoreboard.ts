@@ -14,7 +14,7 @@ const NO_AD = true
 type Team = 'team1' | 'team2'
 type Score = { team1: number; team2: number }
 
-interface Snapshot {
+export interface Snapshot {
   points: Score
   games: Score
   sets: Score
@@ -382,10 +382,12 @@ function describeLastScoringAction(
 export function useScoreboard(options?: {
   onScore?: (team: Team) => void
   onAfterUndo?: () => void
+  onAfterScore?: (payload: { team: Team; priorSnapshot: Snapshot }) => void
 }) {
   const [state, dispatch] = useReducer(reducer, undefined, readInitialState)
   const onScoreRef = useRef(options?.onScore)
   const onAfterUndoRef = useRef(options?.onAfterUndo)
+  const onAfterScoreRef = useRef(options?.onAfterScore)
   const stateForPersistRef = useRef(state)
 
   useEffect(() => {
@@ -395,6 +397,7 @@ export function useScoreboard(options?: {
   useEffect(() => {
     onScoreRef.current = options?.onScore
     onAfterUndoRef.current = options?.onAfterUndo
+    onAfterScoreRef.current = options?.onAfterScore
   })
 
   useEffect(() => {
@@ -423,7 +426,18 @@ export function useScoreboard(options?: {
   }, [])
 
   const handleScore = useCallback((team: Team) => {
+    const prior = stateForPersistRef.current
+    if (prior.matchFinished) return
+    const priorSnapshot: Snapshot = {
+      points: { ...prior.points },
+      games: { ...prior.games },
+      sets: { ...prior.sets },
+      isTiebreak: prior.isTiebreak,
+      setHistory: [...prior.setHistory],
+    }
     dispatch({ type: 'SCORE', team })
+    onScoreRef.current?.(team)
+    onAfterScoreRef.current?.({ team, priorSnapshot })
   }, [])
 
   const handleUndo = useCallback(() => {
@@ -496,7 +510,6 @@ export function useScoreboard(options?: {
           return
         }
         handleScore(team)
-        onScoreRef.current?.(team)
         return
       }
 
@@ -522,14 +535,12 @@ export function useScoreboard(options?: {
         }
         lastKeyUpRef.current = null
         handleScore('team2')
-        onScoreRef.current?.('team2')
       } else {
         lastKeyUpRef.current = now
         singleClickTimerRef.current = setTimeout(() => {
           if (lastKeyUpRef.current === now) {
             lastKeyUpRef.current = null
             handleScore('team1')
-            onScoreRef.current?.('team1')
           }
           singleClickTimerRef.current = null
         }, DOUBLE_CLICK_THRESHOLD_MS)
@@ -573,7 +584,7 @@ export function useScoreboard(options?: {
     [state],
   )
 
-  // Odd total games in the current set → team1 serves; even → team2 serves
+  // Even total games in the current set → team1 serves first; odd → team2 serves
   const serving = useMemo((): Team => {
     const totalGames = state.games.team1 + state.games.team2
     return totalGames % 2 === 1 ? 'team2' : 'team1'
