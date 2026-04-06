@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/mobile@1.1.0...@scoreboard/mobile@1.2.0) (2026-04-06)
+
+### Features
+
+* **mobile:** enhance mobile app with new dependencies and layout updates ([3f6b07e](https://github.com/jadscript/scoreboard/commit/3f6b07ea53c7503767d820359d9f3903f7324b57))
+
 ## 1.1.0 (2026-04-06)
 
 ### Features
