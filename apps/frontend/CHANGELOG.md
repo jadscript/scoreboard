@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.25.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.24.0...@scoreboard/frontend@0.25.0) (2026-04-06)
+
+### Features
+
+* **frontend:** enhance scoreboard functionality with audio feedback and snapshot management ([bb651ad](https://github.com/jadscript/scoreboard/commit/bb651ad1c5334ee1761637347ef9cb45fd12eef4))
+
 ## [0.24.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.23.0...@scoreboard/frontend@0.24.0) (2026-04-03)
 
 ### Features
