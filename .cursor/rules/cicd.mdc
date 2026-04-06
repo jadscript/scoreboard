@@ -1,6 +1,6 @@
 ---
 description: CI/CD pipeline — GitHub Actions workflows, Conventional Commits, release-it per-package versioning
-globs: .github/**/*.yml,**/release-it.json,commitlint.config.js
+globs: .github/**/*.yml,**/.release-it.json,commitlint.config.js
 alwaysApply: false
 ---
 
@@ -19,7 +19,7 @@ alwaysApply: false
 
 Format: `type(scope): description`
 
-**Valid scopes:** `core` · `frontend` · `backend` · `auth` · `shared` · `ci` · `deps` · `release`
+**Valid scopes:** `core` · `frontend` · `backend` · `mobile` · `auth` · `shared` · `ci` · `deps` · `release`
 
 | Type | Version bump |
 |---|---|
@@ -43,6 +43,7 @@ Each Node.js package has its own `.release-it.json`:
 | `@scoreboard/core` | `packages/core/` | `@scoreboard/core@X.Y.Z` | `packages/core/.release-it.json` |
 | `@scoreboard/frontend` | `apps/frontend/` | `@scoreboard/frontend@X.Y.Z` | `apps/frontend/.release-it.json` |
 | `@scoreboard/backend` | `apps/backend/` | `@scoreboard/backend@X.Y.Z` | `apps/backend/.release-it.json` |
+| `@scoreboard/mobile` | `apps/mobile/` | `@scoreboard/mobile@X.Y.Z` | `apps/mobile/.release-it.json` |
 
 Per package, release-it:
 1. Analyses **all** commits since the last package tag to determine the semantic bump
@@ -70,6 +71,9 @@ cd apps/frontend && pnpm run release
 
 # backend
 cd apps/backend && pnpm run release
+
+# mobile (Expo)
+cd apps/mobile && pnpm run release
 
 ```
 

@@ -11,6 +11,7 @@ Real-time beach tennis scoreboard application built with React, TypeScript and D
 | **Auth** | Keycloak 26.5.6 (custom Docker image) |
 | **Language** | TypeScript 5.9 (strict + `erasableSyntaxOnly`) |
 | **Frontend build** | Vite 8 |
+| **Mobile** | Expo SDK 54, React Native 0.81 (`@scoreboard/mobile` — `apps/mobile`) |
 | **Backend build** | NestJS CLI (webpack) |
 | **Client database** | RxDB 16 + Dexie 4 (IndexedDB — matches/players local cache) |
 | **API database** | PostgreSQL + Prisma 7 (`apps/backend` — schema `prisma/schema.prisma`, migrations at container start) |
@@ -36,6 +37,7 @@ pnpm lint         # lint (via turbo)
 scoreboard/
 ├── apps/
 │   ├── frontend/              # Vite app (React + UI) (@scoreboard/frontend)
+│   ├── mobile/                # Expo app (React Native) (@scoreboard/mobile)
 │   ├── backend/               # NestJS API (@scoreboard/backend)
 │   └── auth/                  # Custom Keycloak image (@scoreboard/auth)
 ├── packages/
@@ -127,6 +129,15 @@ apps/auth/
 ```
 
 This is **not** a Node.js package — it is not part of the pnpm workspace or Turborepo pipeline.
+
+### `apps/mobile` (`@scoreboard/mobile`)
+
+Expo + Expo Router. Same Turborepo tasks as other Node packages (`pnpm dev` / `build` / `check-types` / `lint` / `test`). CI `build` runs `expo export -p web` (output `dist/`). Store builds use [EAS](https://docs.expo.dev/build/introduction/) (`eas.json`, project id in `app.json` → `extra.eas`). Releases: **release-it** + `CHANGELOG.md` (tag `@scoreboard/mobile@X.Y.Z`), same automation as frontend/backend on push to `main`.
+
+```bash
+pnpm --filter @scoreboard/mobile dev    # Expo dev server
+cd apps/mobile && pnpm run ios          # or android / web
+```
 
 **Bundled provider:** [keycloak-magic-link](https://github.com/p2-inc/keycloak-magic-link) v0.59 (Phase Two) — downloaded from Maven Central during Docker build. Provides the Email OTP authenticator and Magic Link authenticator.
 
@@ -277,7 +288,7 @@ This repository follows [Conventional Commits](https://www.conventionalcommits.o
 type(scope): description
 ```
 
-**Valid scopes:** `core`, `frontend`, `backend`, `auth`, `shared`, `ci`, `deps`, `release`
+**Valid scopes:** `core`, `frontend`, `backend`, `mobile`, `auth`, `shared`, `ci`, `deps`, `release`
 
 | Type | Example | Version bump |
 |---|---|---|
@@ -295,6 +306,7 @@ Each package has independent tags and GitHub Releases:
 | `@scoreboard/core` | `@scoreboard/core@1.2.3` | `packages/core/.release-it.json` |
 | `@scoreboard/frontend` (frontend) | `@scoreboard/frontend@2.0.0` | `apps/frontend/.release-it.json` |
 | `@scoreboard/backend` | `@scoreboard/backend@1.0.0` | `apps/backend/.release-it.json` |
+| `@scoreboard/mobile` | `@scoreboard/mobile@1.0.0` | `apps/mobile/.release-it.json` |
 | `@scoreboard/auth` | `@scoreboard/auth@0.1.0` | `apps/auth/VERSION` |
 
 A release is only triggered when there are commits since the last tag that touch the package directory. Node.js packages use `release-it` (auto-generates `CHANGELOG.md`). `@scoreboard/auth` uses a plain `VERSION` file + git tags + GitHub Releases (no Node.js tooling).
@@ -310,6 +322,9 @@ cd apps/frontend && pnpm run release
 
 # backend only
 cd apps/backend && pnpm run release
+
+# mobile (Expo) only
+cd apps/mobile && pnpm run release
 
 # auth (Keycloak) — bump VERSION file, then tag manually
 cd apps/auth

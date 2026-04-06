@@ -1,0 +1,17 @@
+{
+  "git": {
+    "tagName": "@scoreboard/mobile@${version}",
+    "commitMessage": "chore(release): @scoreboard/mobile@${version} [skip ci]",
+    "tagAnnotation": "@scoreboard/mobile v${version}"
+  },
+  "github": {
+    "release": true,
+    "releaseName": "@scoreboard/mobile v${version}"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "conventionalcommits",
+      "infile": "CHANGELOG.md"
+    }
+  }
+}

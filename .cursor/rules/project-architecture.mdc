@@ -18,6 +18,7 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 | Auth | Keycloak 26.5.6 (custom Docker image — `apps/auth/`) |
 | Language | TypeScript 5.9 |
 | Frontend build | Vite 8 |
+| Mobile app | Expo SDK 54 · React Native 0.81 (`apps/mobile`, `@scoreboard/mobile`) |
 | Backend build | NestJS CLI (webpack) |
 | Styling | Tailwind CSS 4 (`@tailwindcss/vite` plugin) |
 | Routing | TanStack Router (code-based, `apps/frontend/src/router.tsx`) |
@@ -36,6 +37,7 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 scoreboard/                     ← workspace root
 ├── apps/
 │   ├── frontend/               ← Vite app (React + UI) (@scoreboard/frontend)
+│   ├── mobile/                 ← Expo app (React Native) (@scoreboard/mobile)
 │   ├── backend/                ← NestJS API (@scoreboard/backend)
 │   └── auth/                   ← Custom Keycloak image (@scoreboard/auth)
 ├── packages/
@@ -99,6 +101,20 @@ apps/frontend/src/
 ```
 
 Imports from `@scoreboard/core` use the package alias (e.g. `import { Match } from '@scoreboard/core/domain/match.aggregate'`).
+
+## App: `apps/mobile` (`@scoreboard/mobile`)
+
+Expo SDK 54 + Expo Router. Part of the pnpm workspace and Turborepo pipeline (`dev`, `build` via `expo export -p web` → `dist/`, `check-types`, `lint`, `test`). Native binaries ship via **EAS** (`eas.json`, `app.json` → `extra.eas.projectId`). Versioning and GitHub Releases follow the same **release-it** pattern as frontend/backend (`apps/mobile/.release-it.json`, tag `@scoreboard/mobile@X.Y.Z`). Monorepo installs use **hoisted** `node_modules` (`pnpm-workspace.yaml` → `nodeLinker: hoisted`) per Expo guidance.
+
+```
+apps/mobile/
+├── app/                   ← Expo Router routes
+├── components/
+├── app.json               ← Expo config (+ EAS projectId, experiments)
+├── eas.json               ← EAS Build profiles
+├── .release-it.json       ← release-it + conventional-changelog
+└── CHANGELOG.md
+```
 
 ### Environment variables (Joi validation)
 
@@ -175,7 +191,7 @@ GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 
 - `ci.yml` — commitlint + check-types + test + build (triggers on PRs)
 - `release.yml` — CI + per-package release with path-based change detection (triggers on push to `main`)
-- Commits follow `type(scope): description` — scopes: `core`, `frontend`, `backend`, `auth`, `shared`, `ci`, `deps`, `release`
+- Commits follow `type(scope): description` — scopes: `core`, `frontend`, `backend`, `mobile`, `auth`, `shared`, `ci`, `deps`, `release`
 
 ## Key Architectural Decisions
 
@@ -185,9 +201,10 @@ GitHub Actions + release-it + Conventional Commits. Full details in `cicd.mdc`.
 4. **No parameter properties** in constructors — `erasableSyntaxOnly: true` in tsconfig. Use the Props pattern instead.
 5. **Factory methods** (`Entity.create()`, `Entity.restore()`) replace `new Entity(...)` calls from outside the class.
 6. **Tests live in `__tests__/`** folders at the same level as the file they test, inside `packages/core/src/`.
-7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`, `feat(backend):`, `feat(auth):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
+7. **Commits follow Conventional Commits** — use scoped commits (`feat(core):`, `fix(frontend):`, `feat(backend):`, `feat(mobile):`, `feat(auth):`) to trigger releases only for the affected package. See `cicd.mdc` for full details.
 8. **Backend uses `paths` for core resolution** — `@scoreboard/core/*` is mapped to `../../packages/core/src/*` in `apps/backend/tsconfig.json`. This allows webpack and ts-node to resolve TypeScript source files without a compiled `dist/`. Jest uses the equivalent `moduleNameMapper`.
 9. **Environment variables are validated at startup** — both backend (`@nestjs/config` + Joi) and frontend (`infrastructure/env.ts` + Joi) crash immediately with descriptive errors if required env vars are missing or invalid. Never read `import.meta.env` or `process.env` directly — import from the validated `env` module instead.
 10. **Frontend auth uses `keycloak-js` directly** — no wrapper library. `AuthProvider` wraps the entire app with `onLoad: 'login-required'`. Use the `useAuth()` hook to access user info, roles, and logout.
 11. **Frontend ↔ Nest API** — Use `env.VITE_API_URL` (never raw `import.meta.env`); axios in `src/api/` for transport; TanStack Query in `src/queries/` for server cache; send `Authorization: Bearer` with `useAuth().token` on every backend request. The backend validates tokens with Keycloak (`nest-keycloak-connect`); configure `KEYCLOAK_*` env vars (see `backend.mdc`).
 12. **Where data lives** — Frontend: IndexedDB via RxDB. Backend API: PostgreSQL via Prisma; schema and migrations live in `apps/backend/prisma/`; production containers apply migrations at startup (`migrate deploy`).
+13. **Mobile** — `@scoreboard/mobile` (Expo) lives under `apps/mobile`; participates in Turborepo (`pnpm build` exports web to `dist/`); native builds use **EAS**; releases use **release-it** with tags `@scoreboard/mobile@X.Y.Z` (see `cicd.mdc`).

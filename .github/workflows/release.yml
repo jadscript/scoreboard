@@ -110,6 +110,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Release @scoreboard/mobile
+        run: |
+          LAST_TAG=$(git tag -l "@scoreboard/mobile@*" --sort=-version:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            CHANGED=1
+          else
+            CHANGED=$(git log "${LAST_TAG}..HEAD" --oneline -- apps/mobile/ | wc -l | tr -d ' ')
+          fi
+          if [ "$CHANGED" -gt "0" ]; then
+            echo "Changes detected in apps/mobile — releasing @scoreboard/mobile"
+            cd apps/mobile && pnpm exec release-it --ci
+          else
+            echo "No changes in apps/mobile — skipping"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Release @scoreboard/auth
         run: |
           LAST_TAG=$(git tag -l "@scoreboard/auth@*" --sort=-version:refname | head -1)
