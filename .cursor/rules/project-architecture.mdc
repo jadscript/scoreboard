@@ -18,7 +18,7 @@ Beach tennis scoreboard application. Tracks points, games, sets and matches in r
 | Auth | Keycloak 26.5.6 (custom Docker image — `apps/auth/`) |
 | Language | TypeScript 5.9 |
 | Frontend build | Vite 8 |
-| Mobile app | Expo SDK 54 · React Native 0.81 (`apps/mobile`, `@scoreboard/mobile`) |
+| Mobile app | Expo SDK 54 · React Native 0.81 · [NativeWind](https://www.nativewind.dev/) v4 + Tailwind CSS 3 (`apps/mobile`, `@scoreboard/mobile`) |
 | Backend build | NestJS CLI (webpack) |
 | Styling | Tailwind CSS 4 (`@tailwindcss/vite` plugin) |
 | Routing | TanStack Router (code-based, `apps/frontend/src/router.tsx`) |
@@ -104,12 +104,18 @@ Imports from `@scoreboard/core` use the package alias (e.g. `import { Match } fr
 
 ## App: `apps/mobile` (`@scoreboard/mobile`)
 
-Expo SDK 54 + Expo Router. Part of the pnpm workspace and Turborepo pipeline (`dev`, `build` via `expo export -p web` → `dist/`, `check-types`, `lint`, `test`). Native binaries ship via **EAS** (`eas.json`, `app.json` → `extra.eas.projectId`). Versioning and GitHub Releases follow the same **release-it** pattern as frontend/backend (`apps/mobile/.release-it.json`, tag `@scoreboard/mobile@X.Y.Z`). Monorepo installs use **hoisted** `node_modules` (`pnpm-workspace.yaml` → `nodeLinker: hoisted`) per Expo guidance.
+Expo SDK 54 + Expo Router + **NativeWind v4** (Tailwind CSS 3, `className` on `react-native` views). Config: `tailwind.config.js` (preset `nativewind/preset`), `global.css`, `babel.config.js` (`jsxImportSource: "nativewind"`), `metro.config.js` (`withNativeWind` + `input: ./global.css`), `nativewind-env.d.ts`; CSS imported from `app/_layout.tsx`. Web uses Metro (`app.json` → `expo.web.bundler: "metro"`). Direct dependency **`react-native-css-interop`** is required so pnpm can resolve `jsx-runtime` (see [NativeWind Expo install](https://www.nativewind.dev/docs/getting-started/installation)).
+
+Part of the pnpm workspace and Turborepo pipeline (`dev`, `build` via `expo export -p web` → `dist/`, `check-types`, `lint`, `test`). Native binaries ship via **EAS** (`eas.json`, `app.json` → `extra.eas.projectId`). Versioning and GitHub Releases follow the same **release-it** pattern as frontend/backend (`apps/mobile/.release-it.json`, tag `@scoreboard/mobile@X.Y.Z`). Monorepo installs use **hoisted** `node_modules` (`pnpm-workspace.yaml` → `nodeLinker: hoisted`) per Expo guidance.
 
 ```
 apps/mobile/
 ├── app/                   ← Expo Router routes
 ├── components/
+├── global.css             ← Tailwind directives (NativeWind)
+├── tailwind.config.js
+├── metro.config.js
+├── babel.config.js
 ├── app.json               ← Expo config (+ EAS projectId, experiments)
 ├── eas.json               ← EAS Build profiles
 ├── .release-it.json       ← release-it + conventional-changelog

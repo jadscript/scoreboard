@@ -1,50 +1,31 @@
-# Welcome to your Expo app 👋
+# `@scoreboard/mobile`
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo SDK 54 · Expo Router · **NativeWind v4** (Tailwind CSS 3).
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+From the monorepo root:
 
 ```bash
-npm run reset-project
+pnpm install
+pnpm --filter @scoreboard/mobile dev
+# ou: cd apps/mobile && pnpm ios | android | web
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## NativeWind
 
-## Learn more
+Styling follows the [NativeWind installation guide for Expo](https://www.nativewind.dev/docs/getting-started/installation):
 
-To learn more about developing your project with Expo, look at the following resources:
+- `tailwind.config.js` — `content` globs + `presets: [require('nativewind/preset')]`
+- `global.css` — `@tailwind base/components/utilities`
+- `babel.config.js` — `babel-preset-expo` with `jsxImportSource: "nativewind"` + `nativewind/babel`
+- `metro.config.js` — `withNativeWind(config, { input: './global.css' })`
+- `app/_layout.tsx` — `import '../global.css'`
+- `nativewind-env.d.ts` — `/// <reference types="nativewind/types" />`
+- `app.json` — `expo.web.bundler`: `"metro"`
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**pnpm:** `react-native-css-interop` is listed as a direct dependency so Metro resolves `react-native-css-interop/jsx-runtime` (hoisted monorepo layout).
 
-## Join the community
+Use `className` on React Native primitives, e.g. `<View className="flex-1 items-center">`.
 
-Join our community of developers creating universal apps.
+## EAS
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Project id is set under `expo.extra.eas` in `app.json`. Build with [EAS Build](https://docs.expo.dev/build/introduction/) from `apps/mobile`.

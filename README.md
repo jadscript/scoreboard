@@ -11,7 +11,7 @@ Real-time beach tennis scoreboard application built with React, TypeScript and D
 | **Auth** | Keycloak 26.5.6 (custom Docker image) |
 | **Language** | TypeScript 5.9 (strict + `erasableSyntaxOnly`) |
 | **Frontend build** | Vite 8 |
-| **Mobile** | Expo SDK 54, React Native 0.81 (`@scoreboard/mobile` — `apps/mobile`) |
+| **Mobile** | Expo SDK 54, React Native 0.81, NativeWind v4 + Tailwind CSS 3 (`@scoreboard/mobile` — `apps/mobile`) |
 | **Backend build** | NestJS CLI (webpack) |
 | **Client database** | RxDB 16 + Dexie 4 (IndexedDB — matches/players local cache) |
 | **API database** | PostgreSQL + Prisma 7 (`apps/backend` — schema `prisma/schema.prisma`, migrations at container start) |
@@ -132,7 +132,7 @@ This is **not** a Node.js package — it is not part of the pnpm workspace or Tu
 
 ### `apps/mobile` (`@scoreboard/mobile`)
 
-Expo + Expo Router. Same Turborepo tasks as other Node packages (`pnpm dev` / `build` / `check-types` / `lint` / `test`). CI `build` runs `expo export -p web` (output `dist/`). Store builds use [EAS](https://docs.expo.dev/build/introduction/) (`eas.json`, project id in `app.json` → `extra.eas`). Releases: **release-it** + `CHANGELOG.md` (tag `@scoreboard/mobile@X.Y.Z`), same automation as frontend/backend on push to `main`.
+Expo + Expo Router + [NativeWind](https://www.nativewind.dev/) (Tailwind `className` on RN). Same Turborepo tasks as other Node packages (`pnpm dev` / `build` / `check-types` / `lint` / `test`). CI `build` runs `expo export -p web` (output `dist/`). Store builds use [EAS](https://docs.expo.dev/build/introduction/) (`eas.json`, project id in `app.json` → `extra.eas`). Releases: **release-it** + `CHANGELOG.md` (tag `@scoreboard/mobile@X.Y.Z`), same automation as frontend/backend on push to `main`. See `apps/mobile/README.md` for NativeWind file layout.
 
 ```bash
 pnpm --filter @scoreboard/mobile dev    # Expo dev server
