@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -33,6 +34,12 @@ export class PlayersController {
       userId,
     });
 
+    return player;
+  }
+
+  @Get('by-user-id/:userId')
+  async getByUserId(@Param('userId') userId: string) {
+    const player = await this.getPlayerByUserIdHandler.execute({ userId });
     return player;
   }
 
