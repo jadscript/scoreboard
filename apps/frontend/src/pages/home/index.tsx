@@ -12,10 +12,7 @@ import type {
 import { useHomeGameSetup } from "./useHomeGameSetup";
 import QrCodeUser from "./qrcode";
 import { isNfcWriteSupported } from "./isNfcWriteSupported";
-import {
-  NfcWriteTagModal,
-  type NfcWritePhase,
-} from "./NfcWriteTagModal";
+import { NfcWriteTagModal, type NfcWritePhase } from "./NfcWriteTagModal";
 
 export function HomePage() {
   const { token } = useAuth();
@@ -215,15 +212,6 @@ export function HomePage() {
         {type === "join" && (
           <div className="flex flex-col gap-4 items-center flex-1 w-full">
             <QrCodeUser subject={subject!} />
-            {isNfcWriteSupported() && (
-              <button
-                type="button"
-                onClick={handleOpenNfcWrite}
-                className="w-full py-3 rounded-none border border-stone-400 text-stone-800 text-sm font-semibold uppercase tracking-wide bg-white hover:bg-stone-50 transition-colors cursor-pointer"
-              >
-                {t("home.nfc.writeButton")}
-              </button>
-            )}
           </div>
         )}
       </div>
@@ -234,6 +222,15 @@ export function HomePage() {
         >
           {t("home.startMatch")}
         </Link>
+      )}
+      {isNfcWriteSupported() && type === "join" && (
+        <button
+          type="button"
+          onClick={handleOpenNfcWrite}
+          className="w-full flex justify-center items-center border-0 bg-lime-600 py-6 text-md font-bold uppercase tracking-wide text-white shadow-none ring-0 outline-none transition hover:bg-lime-500 focus-visible:ring-0 active:bg-lime-800"
+        >
+          {t("home.nfcWriteButton")}
+        </button>
       )}
       <NfcWriteTagModal
         open={nfcModalOpen}

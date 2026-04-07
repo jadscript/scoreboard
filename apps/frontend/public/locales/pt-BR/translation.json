@@ -12,19 +12,17 @@
     "newMatch": "Nova Partida",
     "joinMatch": "Partida Existente",
     "qrcodeUsage": "O organizador da partida deve escanear este código QR para que você possa participar da partida.",
-    "nfc": {
-      "writeButton": "Gravar na tag NFC",
-      "modalTitle": "Gravar na tag NFC",
-      "instruction": "Aproxime o celular da tag NFC e mantenha até a gravação terminar.",
-      "writing": "Gravando…",
-      "success": "Gravado com sucesso. O organizador poderá ler sua identificação na tag.",
-      "close": "Fechar",
-      "retry": "Tentar novamente",
-      "errorGeneric": "Não foi possível gravar na tag. Tente de novo.",
-      "errorNotAllowed": "Permissão negada ou NFC desligado. Ative o NFC e tente novamente.",
-      "errorNotSupported": "Esta tag ou o dispositivo não suporta esta operação.",
-      "errorAborted": "Operação cancelada. Aproxime a tag e tente de novo."
-    }
+    "nfcWriteButton": "Gravar na tag NFC",
+    "nfcWriteModalTitle": "Gravar na tag NFC",
+    "nfcWriteModalInstruction": "Aproxime o celular da tag NFC e mantenha até a gravação terminar.",
+    "nfcWriteModalWriting": "Gravando…",
+    "nfcWriteModalSuccess": "Gravado com sucesso. O organizador poderá ler sua identificação na tag.",
+    "nfcWriteModalClose": "Fechar",
+    "nfcWriteModalRetry": "Tentar novamente",
+    "nfcWriteModalErrorGeneric": "Não foi possível gravar na tag. Tente de novo.",
+    "nfcWriteModalErrorNotAllowed": "Permissão negada ou NFC desligado. Ative o NFC e tente novamente.",
+    "nfcWriteModalErrorNotSupported": "Esta tag ou o dispositivo não suporta esta operação.",
+    "nfcWriteModalErrorAborted": "Operação cancelada. Aproxime a tag e tente de novo."
   },
   "onboarding": {
     "title": "Bem vindo!",

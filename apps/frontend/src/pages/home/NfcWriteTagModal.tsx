@@ -40,7 +40,7 @@ export function NfcWriteTagModal({
           type="button"
           onClick={onClose}
           className="absolute top-3 right-3 p-1.5 rounded-none text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors cursor-pointer"
-          aria-label={t("home.nfc.close")}
+          aria-label={t("home.nfcWriteModalClose")}
         >
           <X size={18} strokeWidth={2} />
         </button>
@@ -51,26 +51,26 @@ export function NfcWriteTagModal({
               id="nfc-write-title"
               className="text-lg font-semibold text-stone-900"
             >
-              {t("home.nfc.modalTitle")}
+              {t("home.nfcWriteModalTitle")}
             </h2>
             {phase === "writing" && (
               <p className="text-sm text-stone-500">
-                {t("home.nfc.instruction")}
+                {t("home.nfcWriteModalInstruction")}
               </p>
             )}
             {phase === "writing" && (
               <p className="text-sm font-medium text-lime-700">
-                {t("home.nfc.writing")}
+                {t("home.nfcWriteModalWriting")}
               </p>
             )}
             {phase === "success" && (
               <p className="text-sm text-stone-600">
-                {t("home.nfc.success")}
+                {t("home.nfcWriteModalSuccess")}
               </p>
             )}
             {phase === "error" && (
               <p className="text-sm text-red-600">
-                {errorMessage ?? t("home.nfc.errorGeneric")}
+                {errorMessage ?? t("home.nfcWriteModalErrorGeneric")}
               </p>
             )}
           </div>
@@ -90,7 +90,7 @@ export function NfcWriteTagModal({
                   onClick={onRetry}
                   className="flex-1 py-2.5 rounded-none bg-lime-600 text-white text-sm font-semibold transition-colors hover:bg-lime-500 cursor-pointer"
                 >
-                  {t("home.nfc.retry")}
+                  {t("home.nfcWriteModalRetry")}
                 </button>
               </>
             ) : phase === "success" ? (
@@ -99,7 +99,7 @@ export function NfcWriteTagModal({
                 onClick={onClose}
                 className="w-full py-2.5 rounded-none bg-lime-600 text-white text-sm font-semibold transition-colors hover:bg-lime-500 cursor-pointer"
               >
-                {t("home.nfc.close")}
+                {t("home.nfcWriteModalClose")}
               </button>
             ) : null}
           </div>

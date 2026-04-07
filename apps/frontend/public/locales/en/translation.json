@@ -12,19 +12,17 @@
     "newMatch": "New Match",
     "joinMatch": "Join Match",
     "qrcodeUsage": "The organizer of the match must scan this QR code to let you join the match.",
-    "nfc": {
-      "writeButton": "Write to NFC tag",
-      "modalTitle": "Write to NFC tag",
-      "instruction": "Hold your phone near the NFC tag until writing finishes.",
-      "writing": "Writing…",
-      "success": "Written successfully. The organizer can read your ID from the tag.",
-      "close": "Close",
-      "retry": "Try again",
-      "errorGeneric": "Could not write to the tag. Please try again.",
-      "errorNotAllowed": "Permission denied or NFC is off. Enable NFC and try again.",
-      "errorNotSupported": "This tag or device does not support this operation.",
-      "errorAborted": "Operation cancelled. Hold the tag close and try again."
-    }
+    "nfcWriteButton": "Write to NFC tag",
+    "nfcWriteModalTitle": "Write to NFC tag",
+    "nfcWriteModalInstruction": "Hold your phone near the NFC tag until writing finishes.",
+    "nfcWriteModalWriting": "Writing…",
+    "nfcWriteModalSuccess": "Written successfully. The organizer can read your ID from the tag.",
+    "nfcWriteModalClose": "Close",
+    "nfcWriteModalRetry": "Try again",
+    "nfcWriteModalErrorGeneric": "Could not write to the tag. Please try again.",
+    "nfcWriteModalErrorNotAllowed": "Permission denied or NFC is off. Enable NFC and try again.",
+    "nfcWriteModalErrorNotSupported": "This tag or device does not support this operation.",
+    "nfcWriteModalErrorAborted": "Operation cancelled. Hold the tag close and try again."
   },
   "onboarding": {
     "title": "Welcome!",
