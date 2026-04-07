@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.26.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.25.0...@scoreboard/frontend@0.26.0) (2026-04-07)
+
+### Features
+
+* **frontend:** add NFC writing functionality and enhance translations ([97fc401](https://github.com/jadscript/scoreboard/commit/97fc40140114b4ae2aa4488218fa5fa8e89ee6a9))
+* **mobile:** enhance mobile app with new dependencies and layout updates ([3f6b07e](https://github.com/jadscript/scoreboard/commit/3f6b07ea53c7503767d820359d9f3903f7324b57))
+* **mobile:** integrate Expo app into monorepo and update dependencies ([3412e8b](https://github.com/jadscript/scoreboard/commit/3412e8b0c662b87571bf8adc9bf86fd0e31c0638))
+
+### Bug Fixes
+
+* **backend:** update save method to handle DomainPlayer structure ([efba090](https://github.com/jadscript/scoreboard/commit/efba09050f84c1fbef1bcd60e2e8516a703e8f5e))
+
 ## [0.25.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.24.0...@scoreboard/frontend@0.25.0) (2026-04-06)
 
 ### Features
