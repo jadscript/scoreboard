@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.11.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.10.0...@scoreboard/backend@0.11.0) (2026-04-07)
+
+### Features
+
+* **frontend:** add NFC writing functionality and enhance translations ([97fc401](https://github.com/jadscript/scoreboard/commit/97fc40140114b4ae2aa4488218fa5fa8e89ee6a9))
+* **frontend:** enhance scoreboard functionality and UI elements ([de01a9b](https://github.com/jadscript/scoreboard/commit/de01a9bc57642a24853ecea147796a58b7e0e127))
+* **frontend:** enhance scoreboard functionality with audio feedback and snapshot management ([bb651ad](https://github.com/jadscript/scoreboard/commit/bb651ad1c5334ee1761637347ef9cb45fd12eef4))
+* **frontend:** enhance scoreboard UI and localization ([0741f3b](https://github.com/jadscript/scoreboard/commit/0741f3bf18fddaf0d7d36f1ec12bc5730f204dbb))
+* **frontend:** enhance screen orientation handling on scoreboard page ([fbfdda2](https://github.com/jadscript/scoreboard/commit/fbfdda2f13d683d7abab83b5ee831b3fa53d0f59))
+* **frontend:** integrate QR code functionality and enhance localization ([3697759](https://github.com/jadscript/scoreboard/commit/3697759f3f1108ccf38299be71a17228f8323903))
+* **mobile:** enhance mobile app with new dependencies and layout updates ([3f6b07e](https://github.com/jadscript/scoreboard/commit/3f6b07ea53c7503767d820359d9f3903f7324b57))
+* **mobile:** integrate Expo app into monorepo and update dependencies ([3412e8b](https://github.com/jadscript/scoreboard/commit/3412e8b0c662b87571bf8adc9bf86fd0e31c0638))
+
+### Bug Fixes
+
+* **backend:** update save method to handle DomainPlayer structure ([efba090](https://github.com/jadscript/scoreboard/commit/efba09050f84c1fbef1bcd60e2e8516a703e8f5e))
+
 ## [0.10.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.9.0...@scoreboard/backend@0.10.0) (2026-04-03)
 
 ### Features
