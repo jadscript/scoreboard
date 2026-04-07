@@ -34,8 +34,17 @@ export class PrismaPlayerRepository implements IPlayerRepository {
     return players.map((player) => this.toDomain(player));
   }
 
-  async save(player: Player): Promise<void> {
-    await this.prisma.player.create({ data: player });
+  async save(player: DomainPlayer): Promise<void> {
+    await this.prisma.player.create({
+      data: {
+        id: player.id,
+        name: player.name,
+        userId: player.userId,
+        gender: player.gender,
+        whatsapp: player.whatsapp,
+        photoUrl: player.photoUrl,
+      },
+    });
   }
 
   async deleteById(id: string): Promise<void> {
