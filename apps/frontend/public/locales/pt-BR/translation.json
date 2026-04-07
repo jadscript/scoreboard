@@ -15,7 +15,7 @@
     "nfcWriteButton": "Gravar na tag NFC",
     "nfcWriteModalTitle": "Gravar na tag NFC",
     "nfcWriteModalInstruction": "Aproxime o celular da tag NFC e mantenha até a gravação terminar.",
-    "nfcWriteModalWriting": "Gravando…",
+    "nfcWriteModalWriting": "Aguardando aproximação da tag...",
     "nfcWriteModalSuccess": "Gravado com sucesso. O organizador poderá ler sua identificação na tag.",
     "nfcWriteModalClose": "Fechar",
     "nfcWriteModalRetry": "Tentar novamente",
@@ -75,6 +75,22 @@
       "title": "Salvar partida no histórico",
       "message": "A partida será salva no histórico. Deseja continuar?",
       "confirmLabel": "Salvar"
+    },
+    "addPlayerScan": {
+      "title": "Adicionar jogador",
+      "tabQr": "QR code",
+      "tabNfc": "Tag NFC",
+      "cameraHint": "Aponte a câmera para o código QR do jogador.",
+      "nfcModeHint": "Aproxime o celular na tag NFC do jogador (parte de trás ou de baixo do aparelho). Use Chrome no Android com esta página em HTTPS.",
+      "nfcListening": "Leitura NFC ativa — encoste a tag.",
+      "startQrScan": "Escanear QR code",
+      "cameraError": "Não foi possível usar a câmera. Verifique a permissão e tente de novo.",
+      "retryCamera": "Tentar câmera de novo",
+      "loadingPlayer": "Buscando jogador…",
+      "playerNotFound": "Nenhum jogador cadastrado com este identificador.",
+      "duplicatePlayer": "Este jogador já está na partida. Escolha outra pessoa ou outro slot.",
+      "fetchError": "Não foi possível carregar o jogador. Tente de novo.",
+      "close": "Fechar"
     }
   }
 }

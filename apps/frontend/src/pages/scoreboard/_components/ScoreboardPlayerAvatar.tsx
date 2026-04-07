@@ -2,7 +2,11 @@ import type { MouseEvent } from "react";
 import { UserPlus } from "lucide-react";
 import { cn } from "../../../utils/className";
 
-export type ScoreboardPlayerAvatarPlayer = { id: string; name: string };
+export type ScoreboardPlayerAvatarPlayer = {
+  id: string;
+  name: string;
+  userId: string;
+};
 
 function initialsFromName(name: string): string {
   const trimmed = name.trim();

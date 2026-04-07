@@ -1,5 +1,8 @@
 import { cn } from "../../../utils/className";
-import { ScoreboardPlayerAvatar } from "./ScoreboardPlayerAvatar";
+import {
+  ScoreboardPlayerAvatar,
+  type ScoreboardPlayerAvatarPlayer,
+} from "./ScoreboardPlayerAvatar";
 import { ScoreboardSetScores } from "./ScoreboardSetScores";
 import tennisBallIcon from "../../../assets/icons/tennis-ball.svg?url";
 
@@ -20,7 +23,8 @@ interface Props {
   matchFinished: boolean;
   playersPerTeam: 1 | 2;
   isServing: boolean;
-  players: { id: string; name: string }[];
+  players: (ScoreboardPlayerAvatarPlayer | null)[];
+  onRequestAddPlayer?: (slotIndex: number) => void;
 }
 
 const teamSurface: Record<Props["team"], { flash: string; idle: string }> = {
@@ -47,6 +51,7 @@ export function ScoreboardScorePanel({
   matchFinished,
   playersPerTeam,
   players,
+  onRequestAddPlayer,
 }: Props) {
   const isFirstColumn = team === "team1" ? !courtSwitched : courtSwitched;
   const layoutClass = isFirstColumn
@@ -55,9 +60,9 @@ export function ScoreboardScorePanel({
   const { flash, idle } = teamSurface[team];
   const surfaceClass = scoredTeam === team ? flash : idle;
 
-  const handleUserAdd = (e: React.MouseEvent) => {
+  const handleUserAdd = (e: React.MouseEvent, slotIndex: number) => {
     e.stopPropagation();
-    console.log("user add");
+    onRequestAddPlayer?.(slotIndex);
   };
 
   return (
@@ -81,13 +86,13 @@ export function ScoreboardScorePanel({
           <ScoreboardPlayerAvatar
             team={team}
             player={players[0] ?? null}
-            onClick={handleUserAdd}
+            onClick={(e) => handleUserAdd(e, 0)}
           />
           {playersPerTeam === 2 ? (
             <ScoreboardPlayerAvatar
               team={team}
               player={players[1] ?? null}
-              onClick={handleUserAdd}
+              onClick={(e) => handleUserAdd(e, 1)}
             />
           ) : null}
         </div>

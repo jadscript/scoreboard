@@ -15,7 +15,7 @@
     "nfcWriteButton": "Write to NFC tag",
     "nfcWriteModalTitle": "Write to NFC tag",
     "nfcWriteModalInstruction": "Hold your phone near the NFC tag until writing finishes.",
-    "nfcWriteModalWriting": "Writing…",
+    "nfcWriteModalWriting": "Waiting for tag proximity...",
     "nfcWriteModalSuccess": "Written successfully. The organizer can read your ID from the tag.",
     "nfcWriteModalClose": "Close",
     "nfcWriteModalRetry": "Try again",
@@ -75,6 +75,22 @@
       "title": "Save match to history",
       "message": "The match will be saved to the history. Do you want to continue?",
       "confirmLabel": "Save"
+    },
+    "addPlayerScan": {
+      "title": "Add player",
+      "tabQr": "QR code",
+      "tabNfc": "NFC tag",
+      "cameraHint": "Point the camera at the player's QR code.",
+      "nfcModeHint": "Hold the phone near the player's NFC tag (back or bottom edge). Use Chrome on Android with this page served over HTTPS.",
+      "nfcListening": "NFC reading active — touch the tag to the phone.",
+      "startQrScan": "Scan QR code",
+      "cameraError": "Could not use the camera. Check permission and try again.",
+      "retryCamera": "Retry camera",
+      "loadingPlayer": "Loading player…",
+      "playerNotFound": "No registered player matches this identifier.",
+      "duplicatePlayer": "This player is already in the match. Pick someone else or another slot.",
+      "fetchError": "Could not load the player. Try again.",
+      "close": "Close"
     }
   }
 }

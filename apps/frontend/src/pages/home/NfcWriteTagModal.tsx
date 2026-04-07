@@ -45,7 +45,7 @@ export function NfcWriteTagModal({
           <X size={18} strokeWidth={2} />
         </button>
 
-        <div className="px-6 pt-6 pb-5 flex flex-col gap-4 pr-12">
+        <div className="px-6 pt-6 pb-5 flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <h2
               id="nfc-write-title"
@@ -59,7 +59,7 @@ export function NfcWriteTagModal({
               </p>
             )}
             {phase === "writing" && (
-              <p className="text-sm font-medium text-lime-700">
+              <p className="text-xl font-medium text-lime-700 animate-pulse text-center mt-6">
                 {t("home.nfcWriteModalWriting")}
               </p>
             )}

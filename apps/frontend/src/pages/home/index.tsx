@@ -11,7 +11,7 @@ import type {
 } from "./types";
 import { useHomeGameSetup } from "./useHomeGameSetup";
 import QrCodeUser from "./qrcode";
-import { isNfcWriteSupported } from "./isNfcWriteSupported";
+import { isWebNfcSupported } from "../../utils/isWebNfcSupported";
 import { NfcWriteTagModal, type NfcWritePhase } from "./NfcWriteTagModal";
 
 export function HomePage() {
@@ -223,11 +223,11 @@ export function HomePage() {
           {t("home.startMatch")}
         </Link>
       )}
-      {isNfcWriteSupported() && type === "join" && (
+      {isWebNfcSupported() && type === "join" && (
         <button
           type="button"
           onClick={handleOpenNfcWrite}
-          className="w-full flex justify-center items-center border-0 bg-lime-600 py-6 text-md font-bold uppercase tracking-wide text-white shadow-none ring-0 outline-none transition hover:bg-lime-500 focus-visible:ring-0 active:bg-lime-800"
+          className="cursor-pointer w-full flex justify-center items-center border-0 bg-lime-600 py-6 text-md font-bold uppercase tracking-wide text-white shadow-none ring-0 outline-none transition hover:bg-lime-500 focus-visible:ring-0 active:bg-lime-800"
         >
           {t("home.nfcWriteButton")}
         </button>

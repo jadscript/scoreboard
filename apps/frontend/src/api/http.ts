@@ -6,6 +6,16 @@ function isAxiosError(err: unknown): err is AxiosError {
   return axios.isAxiosError(err)
 }
 
+export class ApiHttpError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiHttpError';
+    this.status = status;
+  }
+}
+
 const apiClient = axios.create({
   baseURL: env.VITE_API_URL.replace(/\/$/, ''),
 })
@@ -50,7 +60,7 @@ async function apiRequest<R = unknown, D = unknown>({
           : payload != null
           ? JSON.stringify(payload)
           : '';
-      throw new Error(body || `HTTP ${status} ${err.message}`);
+      throw new ApiHttpError(body || err.message || 'Request failed', status);
     }
     throw err;
   }

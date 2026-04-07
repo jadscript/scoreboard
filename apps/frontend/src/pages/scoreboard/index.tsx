@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ScoreboardPlayerAvatarPlayer } from "./_components/ScoreboardPlayerAvatar";
+import { ScoreboardAddPlayerScanModal } from "./_components/ScoreboardAddPlayerScanModal";
+import { extractUserIdFromNfcReading } from "./_components/nfcScanHelpers";
+import { isWebNfcSupported } from "../../utils/isWebNfcSupported";
 import { useNavigate } from "@tanstack/react-router";
 import { loadGameSetup } from "../home/gameSetupStorage";
 import { playersPerTeamForFormat } from "../home/types";
@@ -35,6 +39,138 @@ export function ScoreboardPage() {
   // const { users } = useGameUsers();
   const gameSetup = useMemo(() => loadGameSetup(), []);
   const playersPerTeam = playersPerTeamForFormat(gameSetup.gameFormat);
+
+  const [team1Players, setTeam1Players] = useState<
+    (ScoreboardPlayerAvatarPlayer | null)[]
+  >(() => Array.from({ length: playersPerTeam }, () => null));
+  const [team2Players, setTeam2Players] = useState<
+    (ScoreboardPlayerAvatarPlayer | null)[]
+  >(() => Array.from({ length: playersPerTeam }, () => null));
+
+  const [addScanOpen, setAddScanOpen] = useState(false);
+  const [scannedUserId, setScannedUserId] = useState<string | undefined>();
+  const [pendingAddSlot, setPendingAddSlot] = useState<{
+    team: "team1" | "team2";
+    slotIndex: number;
+  } | null>(null);
+  const [addScanDuplicateMessage, setAddScanDuplicateMessage] = useState<
+    string | null
+  >(null);
+  const nfcAbortRef = useRef<AbortController | null>(null);
+  const addScanTargetRef = useRef<{
+    team: "team1" | "team2";
+    slotIndex: number;
+  } | null>(null);
+
+  const stopNfcScan = useCallback(() => {
+    nfcAbortRef.current?.abort();
+    nfcAbortRef.current = null;
+  }, []);
+
+  const closeAddScanModal = useCallback(() => {
+    stopNfcScan();
+    addScanTargetRef.current = null;
+    setPendingAddSlot(null);
+    setAddScanDuplicateMessage(null);
+    setAddScanOpen(false);
+    setScannedUserId(undefined);
+  }, [stopNfcScan]);
+
+  const startNfcScan = useCallback(() => {
+    stopNfcScan();
+    if (!isWebNfcSupported()) return;
+    const ac = new AbortController();
+    nfcAbortRef.current = ac;
+    try {
+      const ndef = new NDEFReader();
+      ndef.addEventListener(
+        "reading",
+        (ev: NDEFReadingEvent) => {
+          const uid = extractUserIdFromNfcReading(ev);
+          if (uid) {
+            setScannedUserId((prev) => (prev === undefined ? uid : prev));
+          }
+        },
+        { once: true },
+      );
+      void ndef.scan({ signal: ac.signal }).catch(() => {});
+    } catch {
+      /* runtime unsupported */
+    }
+  }, [stopNfcScan]);
+
+  const openAddScanModal = useCallback(
+    (team: "team1" | "team2", slotIndex: number) => {
+      stopNfcScan();
+      const slot = { team, slotIndex };
+      addScanTargetRef.current = slot;
+      setPendingAddSlot(slot);
+      setAddScanDuplicateMessage(null);
+      setScannedUserId(undefined);
+      setAddScanOpen(true);
+    },
+    [stopNfcScan],
+  );
+
+  const resolveScannedUserId = useCallback((userId: string) => {
+    setAddScanDuplicateMessage(null);
+    setScannedUserId((prev) => (prev === undefined ? userId.trim() : prev));
+  }, []);
+
+  const clearScannedUserId = useCallback(() => {
+    setScannedUserId(undefined);
+  }, []);
+
+  const notifyDuplicatePlayerFromScan = useCallback(() => {
+    setAddScanDuplicateMessage(t("scoreboard.addPlayerScan.duplicatePlayer"));
+  }, [t]);
+
+  const isPlayerAlreadyInMatch = useCallback(
+    (player: { id: string; userId: string }) => {
+      if (!pendingAddSlot) return false;
+      const { team: exTeam, slotIndex: exIdx } = pendingAddSlot;
+      const matches = (p: ScoreboardPlayerAvatarPlayer) =>
+        p.id === player.id || p.userId === player.userId;
+      const checkTeam = (
+        arr: (ScoreboardPlayerAvatarPlayer | null)[],
+        team: "team1" | "team2",
+      ) => {
+        for (let i = 0; i < arr.length; i++) {
+          const p = arr[i];
+          if (!p) continue;
+          if (team === exTeam && i === exIdx) continue;
+          if (matches(p)) return true;
+        }
+        return false;
+      };
+      return (
+        checkTeam(team1Players, "team1") || checkTeam(team2Players, "team2")
+      );
+    },
+    [pendingAddSlot, team1Players, team2Players],
+  );
+
+  const handlePlayerAddedFromScan = useCallback(
+    (player: ScoreboardPlayerAvatarPlayer) => {
+      const target = addScanTargetRef.current;
+      if (!target) return;
+      if (target.team === "team1") {
+        setTeam1Players((prev) => {
+          const next = [...prev];
+          next[target.slotIndex] = player;
+          return next;
+        });
+      } else {
+        setTeam2Players((prev) => {
+          const next = [...prev];
+          next[target.slotIndex] = player;
+          return next;
+        });
+      }
+      closeAddScanModal();
+    },
+    [closeAddScanModal],
+  );
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -236,7 +372,10 @@ export function ScoreboardPage() {
           matchFinished={matchFinished}
           playersPerTeam={playersPerTeam}
           isServing={serving === "team1"}
-          players={[{ id: "1", name: "Player 1" }, { id: "2", name: "Player 2" }]}
+          players={team1Players}
+          onRequestAddPlayer={(slotIndex) =>
+            openAddScanModal("team1", slotIndex)
+          }
         />
         <ScoreboardScorePanel
           team="team2"
@@ -249,8 +388,11 @@ export function ScoreboardPage() {
           setsToWinMatch={setsToWinMatch}
           matchFinished={matchFinished}
           playersPerTeam={playersPerTeam}
-          players={[{ id: "1", name: "Player 1" }, { id: "2", name: "Player 2" }]}
+          players={team2Players}
           isServing={serving === "team2"}
+          onRequestAddPlayer={(slotIndex) =>
+            openAddScanModal("team2", slotIndex)
+          }
         />
 
         {/* <div className="absolute bottom-0 left-0 md:right-0 flex justify-center max-w-2xl mx-auto px-1">
@@ -313,6 +455,21 @@ export function ScoreboardPage() {
           }}
         />
       )}
+
+      {addScanOpen ? (
+        <ScoreboardAddPlayerScanModal
+          scannedUserId={scannedUserId}
+          onResolveUserId={resolveScannedUserId}
+          onClearScannedUserId={clearScannedUserId}
+          onClose={closeAddScanModal}
+          onPlayerAdded={handlePlayerAddedFromScan}
+          onStartNfcScan={startNfcScan}
+          onStopNfcScan={stopNfcScan}
+          isPlayerAlreadyInMatch={isPlayerAlreadyInMatch}
+          duplicateMessage={addScanDuplicateMessage}
+          onDuplicatePlayerFromScan={notifyDuplicatePlayerFromScan}
+        />
+      ) : null}
     </div>
   );
 }
