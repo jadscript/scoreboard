@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.11.0...@scoreboard/backend@0.12.0) (2026-04-07)
+
+### Features
+
+* **backend:** add endpoint to retrieve player by user ID ([3a8397a](https://github.com/jadscript/scoreboard/commit/3a8397a700cb45eeb98da3eaed3ab48ed1a7adcc))
+* **frontend:** integrate ZXing library for QR and NFC functionality ([9745ea0](https://github.com/jadscript/scoreboard/commit/9745ea0bb27e230c326cbdf4bd17fd66325ca43a))
+
 ## [0.11.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.10.0...@scoreboard/backend@0.11.0) (2026-04-07)
 
 ### Features
