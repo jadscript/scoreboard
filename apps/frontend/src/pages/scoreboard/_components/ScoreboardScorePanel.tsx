@@ -1,16 +1,7 @@
-import { UserPlus } from "lucide-react";
 import { cn } from "../../../utils/className";
+import { ScoreboardPlayerAvatar } from "./ScoreboardPlayerAvatar";
 import { ScoreboardSetScores } from "./ScoreboardSetScores";
 import tennisBallIcon from "../../../assets/icons/tennis-ball.svg?url";
-
-interface GameUser {
-  id: string;
-  name: string;
-  email: string;
-  gender: "male" | "female" | "unknown";
-  whatsapp: string | null;
-  photoUrl: string;
-}
 
 interface SetScore {
   team1: number;
@@ -28,8 +19,8 @@ interface Props {
   setsToWinMatch: number;
   matchFinished: boolean;
   playersPerTeam: 1 | 2;
-  users: GameUser[];
   isServing: boolean;
+  players: { id: string; name: string }[];
 }
 
 const teamSurface: Record<Props["team"], { flash: string; idle: string }> = {
@@ -54,6 +45,8 @@ export function ScoreboardScorePanel({
   setHistory,
   setsToWinMatch,
   matchFinished,
+  playersPerTeam,
+  players,
 }: Props) {
   const isFirstColumn = team === "team1" ? !courtSwitched : courtSwitched;
   const layoutClass = isFirstColumn
@@ -85,33 +78,26 @@ export function ScoreboardScorePanel({
             isFirstColumn ? "justify-start order-1" : "justify-end order-2",
           )}
         >
-          <div
-            className={cn(
-              "w-12 h-12 md:w-18 md:h-18 rounded-full overflow-hidden flex items-center justify-center border-3 md:border-5 z-10",
-              team === "team1"
-                ? "bg-lime-100 text-lime-600 border-lime-600"
-                : "bg-stone-200 text-stone-600 border-stone-600",
-            )}
+          <ScoreboardPlayerAvatar
+            team={team}
+            player={players[0] ?? null}
             onClick={handleUserAdd}
-          >
-            {/* <img src={`https://avatars.githubusercontent.com/u/84452479?v=4&size=256`} alt={team} className="w-full h-full object-cover" /> */}
-            <UserPlus className="w-7 h-7 object-cover" />
-          </div>
-          <div
-            className={cn(
-              "w-12 h-12 md:w-18 md:h-18 rounded-full overflow-hidden flex items-center justify-center border-3 md:border-5 z-10",
-              team === "team2"
-                ? "bg-stone-200 text-stone-600 border-stone-600"
-                : "bg-lime-100 text-lime-600 border-lime-600",
-            )}
-            onClick={handleUserAdd}
-          >
-            {/* <img src={`https://avatars.githubusercontent.com/u/84452479?v=4&size=256`} alt={team} className="w-full h-full object-cover" /> */}
-            <UserPlus className="w-7 h-7 object-cover" />
-          </div>
+          />
+          {playersPerTeam === 2 ? (
+            <ScoreboardPlayerAvatar
+              team={team}
+              player={players[1] ?? null}
+              onClick={handleUserAdd}
+            />
+          ) : null}
         </div>
 
-        <div className={cn("flex items-center gap-4", isFirstColumn ? "order-2 justify-end" : "order-1 justify-start")}>
+        <div
+          className={cn(
+            "flex items-center gap-4",
+            isFirstColumn ? "order-2 justify-end" : "order-1 justify-start",
+          )}
+        >
           <ScoreboardSetScores
             games={games}
             setHistory={setHistory}

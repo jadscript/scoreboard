@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { usePlayerMe } from "../../service/players/queries/use-player-me";
 import { Link, useRouter } from "@tanstack/react-router";
@@ -10,6 +11,11 @@ import type {
 } from "./types";
 import { useHomeGameSetup } from "./useHomeGameSetup";
 import QrCodeUser from "./qrcode";
+import { isNfcWriteSupported } from "./isNfcWriteSupported";
+import {
+  NfcWriteTagModal,
+  type NfcWritePhase,
+} from "./NfcWriteTagModal";
 
 export function HomePage() {
   const { token } = useAuth();
@@ -32,6 +38,59 @@ export function HomePage() {
   const { data, isLoading } = usePlayerMe();
   const router = useRouter();
   const { t } = useTranslation();
+  const [nfcModalOpen, setNfcModalOpen] = useState(false);
+  const [nfcPhase, setNfcPhase] = useState<NfcWritePhase>("writing");
+  const [nfcErrorMessage, setNfcErrorMessage] = useState<string | undefined>(
+    undefined,
+  );
+
+  const runNfcWrite = useCallback(() => {
+    if (!subject) return;
+    setNfcPhase("writing");
+    setNfcErrorMessage(undefined);
+    const ndef = new NDEFReader();
+    void ndef
+      .write({
+        records: [
+          {
+            recordType: "text",
+            data: subject,
+            encoding: "utf-8",
+            lang: "en",
+          },
+        ],
+      })
+      .then(() => {
+        setNfcPhase("success");
+      })
+      .catch((err: unknown) => {
+        setNfcPhase("error");
+        if (err instanceof DOMException) {
+          if (err.name === "NotAllowedError") {
+            setNfcErrorMessage(t("home.nfc.errorNotAllowed"));
+          } else if (err.name === "NotSupportedError") {
+            setNfcErrorMessage(t("home.nfc.errorNotSupported"));
+          } else if (err.name === "AbortError") {
+            setNfcErrorMessage(t("home.nfc.errorAborted"));
+          } else {
+            setNfcErrorMessage(t("home.nfc.errorGeneric"));
+          }
+        } else {
+          setNfcErrorMessage(t("home.nfc.errorGeneric"));
+        }
+      });
+  }, [subject, t]);
+
+  const handleOpenNfcWrite = () => {
+    if (!subject) return;
+    setNfcModalOpen(true);
+    runNfcWrite();
+  };
+
+  const handleCloseNfcModal = () => {
+    setNfcModalOpen(false);
+  };
+
   const {
     matchFlowType: type,
     setMatchFlowType: setType,
@@ -153,7 +212,20 @@ export function HomePage() {
           </div>
         )}
 
-        {type === "join" && <QrCodeUser subject={subject!} />}
+        {type === "join" && (
+          <div className="flex flex-col gap-4 items-center flex-1 w-full">
+            <QrCodeUser subject={subject!} />
+            {isNfcWriteSupported() && (
+              <button
+                type="button"
+                onClick={handleOpenNfcWrite}
+                className="w-full py-3 rounded-none border border-stone-400 text-stone-800 text-sm font-semibold uppercase tracking-wide bg-white hover:bg-stone-50 transition-colors cursor-pointer"
+              >
+                {t("home.nfc.writeButton")}
+              </button>
+            )}
+          </div>
+        )}
       </div>
       {type === "new" && (
         <Link
@@ -163,6 +235,13 @@ export function HomePage() {
           {t("home.startMatch")}
         </Link>
       )}
+      <NfcWriteTagModal
+        open={nfcModalOpen}
+        phase={nfcPhase}
+        errorMessage={nfcErrorMessage}
+        onClose={handleCloseNfcModal}
+        onRetry={runNfcWrite}
+      />
     </Layout>
   );
 }

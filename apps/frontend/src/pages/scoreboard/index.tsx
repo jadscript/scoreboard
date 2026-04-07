@@ -235,8 +235,8 @@ export function ScoreboardPage() {
           setsToWinMatch={setsToWinMatch}
           matchFinished={matchFinished}
           playersPerTeam={playersPerTeam}
-          users={[]}
           isServing={serving === "team1"}
+          players={[{ id: "1", name: "Player 1" }, { id: "2", name: "Player 2" }]}
         />
         <ScoreboardScorePanel
           team="team2"
@@ -249,7 +249,7 @@ export function ScoreboardPage() {
           setsToWinMatch={setsToWinMatch}
           matchFinished={matchFinished}
           playersPerTeam={playersPerTeam}
-          users={[]}
+          players={[{ id: "1", name: "Player 1" }, { id: "2", name: "Player 2" }]}
           isServing={serving === "team2"}
         />
 
