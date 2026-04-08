@@ -55,7 +55,7 @@ export function ScoreboardAddPlayerScanModal({
   const successDispatchedRef = useRef(false);
   const [scannerError, setScannerError] = useState<string | null>(null);
   const [qrScanStarted, setQrScanStarted] = useState(false);
-  const [mode, setMode] = useState<ScanMode>("qr");
+  const [mode, setMode] = useState<ScanMode>("nfc");
 
   const {
     data: playerData,
