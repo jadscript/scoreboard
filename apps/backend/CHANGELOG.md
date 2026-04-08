@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.12.0...@scoreboard/backend@0.13.0) (2026-04-08)
+
+### Features
+
+* **backend:** add logging to player retrieval in PlayersController ([08b4e18](https://github.com/jadscript/scoreboard/commit/08b4e18b1cbb95f961e4828e1b185a615d824cd6))
+
 ## [0.12.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.11.0...@scoreboard/backend@0.12.0) (2026-04-07)
 
 ### Features
