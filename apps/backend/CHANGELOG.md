@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.14.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.13.0...@scoreboard/backend@0.14.0) (2026-04-08)
+
+### Bug Fixes
+
+* **frontend:** update NFC text payload decoding and change scan mode to NFC ([168b6a7](https://github.com/jadscript/scoreboard/commit/168b6a79b67ce29a01e4ce7a32bd5b49f026cc18))
+
 ## [0.13.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/backend@0.12.0...@scoreboard/backend@0.13.0) (2026-04-08)
 
 ### Features
