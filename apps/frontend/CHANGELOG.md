@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.29.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.28.0...@scoreboard/frontend@0.29.0) (2026-04-08)
+
+### Features
+
+* **backend:** add logging to player retrieval in PlayersController ([08b4e18](https://github.com/jadscript/scoreboard/commit/08b4e18b1cbb95f961e4828e1b185a615d824cd6))
+
+### Bug Fixes
+
+* **frontend:** update NFC text payload decoding and change scan mode to NFC ([168b6a7](https://github.com/jadscript/scoreboard/commit/168b6a79b67ce29a01e4ce7a32bd5b49f026cc18))
+
 ## [0.28.0](https://github.com/jadscript/scoreboard/compare/@scoreboard/frontend@0.27.0...@scoreboard/frontend@0.28.0) (2026-04-07)
 
 ### Features
