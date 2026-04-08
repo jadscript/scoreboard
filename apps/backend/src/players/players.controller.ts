@@ -11,6 +11,7 @@ import { GetPlayerByUserIdHandler } from '@scoreboard/core/application/queries/g
 import { CreatePlayerDto } from './dtos/create-player.dto';
 import { CreatePlayerHandler } from '@scoreboard/core/application/commands/create-player/create-player.command';
 import { Gender } from '@scoreboard/core/domain/player.entity';
+import { Logger } from '@nestjs/common';
 
 interface AccessTokenPayload {
   sub?: string;
@@ -18,6 +19,7 @@ interface AccessTokenPayload {
 
 @Controller('players')
 export class PlayersController {
+  private readonly logger = new Logger(PlayersController.name);
   constructor(
     private readonly getPlayerByUserIdHandler: GetPlayerByUserIdHandler,
     private readonly createPlayerHandler: CreatePlayerHandler,
@@ -39,6 +41,7 @@ export class PlayersController {
 
   @Get('by-user-id/:userId')
   async getByUserId(@Param('userId') userId: string) {
+    this.logger.log(`Getting player by user ID: ${userId}`);
     const player = await this.getPlayerByUserIdHandler.execute({ userId });
     return player;
   }
